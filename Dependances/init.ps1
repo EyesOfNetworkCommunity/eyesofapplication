@@ -12,7 +12,10 @@
 $Path = "C:\eon\APX\EON4APPS\"#Ne pas modifier
 $PathApps = $Path + "Apps\"#Ne pas modifier
 $CheminFichierImages = $Path + "Images\"#Ne pas modifier
-$Status = "OK"#Ne pas modifier-initialisation
+$SOID = "1.3.6.1.4.1.39881"#Ne pas modifier
+$OID = "1.3.6.1.4.1.39881.0.0.1"#Ne pas modifier
+$Status = 0#Ne pas modifier-initialisation
+$Etat = @("Ok", "Avertissement", "Critique", "Inconnu")#Ne pas modifier
 $Information = ""#Ne pas modifier
 $Chrono=@()#Ne pas modifier
 $BorneInferieure = 0#Ne pas modifier
@@ -210,12 +213,12 @@ Function ImageSearch
 {
 
     param (
-		[string] $Image,
-		[int] $ImageSearchRetries,
-		[int] $ImageSearchVerbosity,
+        [string] $Image,
+        [int] $ImageSearchRetries,
+        [int] $ImageSearchVerbosity,
 		[string] $EonSrv,
-		[int] $Wait=250,
-		[int] $noerror=0
+        [int] $Wait=250,
+        [int] $noerror=0
     )
 
     If (!(Test-Path $Image)){ throw [System.IO.FileNotFoundException] "$Image not found" }
@@ -322,8 +325,8 @@ Function GetPerfdata
     Foreach($svc in $Services){ 
         $ChronoTotal += $Chrono[$i]
         $PerfDataTemp = $PerfDataTemp + " " + $svc[0] + "=" + $Chrono[$i]+"s"
-        $ServicesWtmp = "\nWARNING : " +$svc[0]+" "+$Chrono[$i]+"s" 
-        $ServicesCtmp = "\nCRITICAL : " +$svc[0]+" "+$Chrono[$i]+"s" 
+        $ServicesWtmp = "<BR>"+$Etat["1"]+ " : " +$svc[0]+" "+$Chrono[$i]+"s" 
+        $ServicesCtmp = "<BR>"+$Etat["2"]+ " : " +$svc[0]+" "+$Chrono[$i]+"s" 
 
         if($svc[1] -ne "") { 
             $PerfDataTemp += ";"+$svc[1]
