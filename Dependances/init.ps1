@@ -265,10 +265,7 @@ Function ImageSearch
 			# Send image to EON server.
 			AddValues "ERROR" "Send the file: ${Path}pscp.exe -i ${Path}sshkey\id_dsa -l eon4apps $ScrShot ${EonSrv}:/srv/eyesofnetwork/eon4apps/html/"
 			$SendFile = & ${Path}pscp.exe -i ${Path}sshkey\id_dsa -l eon4apps $ScrShot "${EonSrv}:/srv/eyesofnetwork/eon4apps/html/"
-			# Please note: Char ! is used as doublequote char
-			#
-			#
-			throw [System.IO.FileNotFoundException] "$Image not found in screen: <a href=!http://$EonSrv/eon4apps/$BaseFileName$BaseFileNameExt! target=!_blank!>$ScrShot</a>"
+			throw [System.IO.FileNotFoundException] "$Image not found in screen: <![CDATA[<a href='http://$EonSrv/eon4apps/$BaseFileName$BaseFileNameExt' target='_blank'>$ScrShot</a>]]>"
 		}
 	}
     elseif (($ImageFound -ne 1) -and ($noerror -eq 1))
