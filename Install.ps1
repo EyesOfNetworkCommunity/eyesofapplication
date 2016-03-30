@@ -25,5 +25,5 @@ Copy-Item -Path $Path"\Dependances\pscp.exe" -Destination $ApxPath
 Copy-Item -Path $Path"\Dependances\purge.ps1" -Destination $ApxPath
 Copy-Item -Path $Path"\Dependances\nrdp.ps1" -Destination $ApxPath
 
-SCHTASKS /Create /SC MINUTE /MO 5 /TN EON4APPS_PURGE /TR "powershell -WindowStyle hidden & '$Purge'"
-SCHTASKS /Create /SC MINUTE /MO 5 /TN EON4APPS /TR "powershell -WindowStyle Minimized & '$Sonde' www.eyesofnetwork.fr $EonServ $EonToken"
+SCHTASKS /Create /SC MINUTE /MO 5 /TN EON4APPS_PURGE /TR "powershell -WindowStyle hidden -ExecutionPolicy Bypass -File '$Purge'"
+SCHTASKS /Create /SC MINUTE /MO 5 /TN EON4APPS /TR "powershell -WindowStyle Minimized -ExecutionPolicy Bypass -File '$Sonde' www.eyesofnetwork.fr $EonServ $EonToken"
