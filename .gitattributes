@@ -5,8 +5,6 @@
 *.cs     diff=csharp
 
 # Standard to msysgit
-*.ps1	diff=astextplain
-*.PS1	diff=astextplain
 *.doc	 diff=astextplain
 *.DOC	 diff=astextplain
 *.docx diff=astextplain
@@ -19,6 +17,8 @@
 *.RTF	 diff=astextplain
 
 # Eon4apps specifics
+*.ps1 text
+*.PS1 text
 *.eot binary
 *.EOT binary
 *.gif binary
