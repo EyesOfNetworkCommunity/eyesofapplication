@@ -1,5 +1,5 @@
 Il est nécessaire de renseigner deux variables durant la copie des fichiers :
-	- IP Serveur_Eon
+	- IP Serveur EyesOfNetwork
 	- Token NRDP
 
 Pour executer le script Install.ps1, il est nécessaire de le lancer en Administrateur. Pour se faire :
