@@ -1,7 +1,6 @@
 [void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic') 
-$EonServ = [Microsoft.VisualBasic.Interaction]::InputBox("Entrer l'IP du serveur EON", "Configure your Trap_SNMP", "")
-$SIP = [Microsoft.VisualBasic.Interaction]::InputBox("Entrer l’IP de la station Windows", "Configure your Trap_SNMP", "")
-$Community = [Microsoft.VisualBasic.Interaction]::InputBox("Entrer le nom de la communaute SNMP", "Configure your Trap_SNMP", "")
+$EonServ = [Microsoft.VisualBasic.Interaction]::InputBox("IP du serveur EON", "Configuration NRDP", "")
+$EonToken = [Microsoft.VisualBasic.Interaction]::InputBox("Token NRDP", "Configuration NRDP", "")
 
 $Path = Get-Location
 $ApxPath = "C:\eon\APX\EON4APPS\"
@@ -20,6 +19,6 @@ Copy-Item -Path $Path"\Dependances\ImageSearchDLL.dll" -Destination $ApxPath
 Copy-Item -Path $Path"\Dependances\eon4apps.ps1" -Destination $ApxPath
 Copy-Item -Path $Path"\Dependances\init.ps1" -Destination $ApxPath
 Copy-Item -Path $Path"\Dependances\pscp.exe" -Destination $ApxPath
-Copy-Item -Path $Path"\Dependances\TrapGen.exe" -Destination $ApxPath
+Copy-Item -Path $Path"\Dependances\nrdp.ps1" -Destination $ApxPath
 
-SCHTASKS /Create /SC MINUTE /MO 5 /TN EON4APPS /TR "powershell -WindowStyle Minimized & '$Sonde' www.eyesofnetwork.fr $EonServ $SIP $Community"
+SCHTASKS /Create /SC MINUTE /MO 5 /TN EON4APPS /TR "powershell -WindowStyle Minimized & '$Sonde' www.eyesofnetwork.fr $EonServ $EonToken"

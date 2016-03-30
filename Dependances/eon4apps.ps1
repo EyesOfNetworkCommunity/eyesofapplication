@@ -14,10 +14,9 @@ Param(
 	[Parameter(Mandatory=$true)]
 	[string]$App,
 	[string]$EonServ="",
-	[string]$SIP="0",
-	[string]$Community=""
+	[string]$EonToken=""
 )
-if(!$EonServ -or !$SIP -or !$Community) { throw "Please define EonServ, SIP and Community parameters" }
+if(!$EonServ -or !$EonToken) { throw "Please define EonServ and EonToken" }
 
 # Récupération du path
 $ScriptPath = (Split-Path ((Get-Variable MyInvocation).Value).MyCommand.Path) 
@@ -67,17 +66,14 @@ Catch {
     # Ajouter le service en cours en erreur
     $ErrorMessage = $_.Exception.Message
     AddValues "ERROR" $ErrorMessage
-    $Status = 2
-    $Information = $Etat[$Status] + " : " + $Service + " " + $ErrorMessage
+    $Status = "CRITICAL"
+    $Information = $Status + " : " + $Service + " " + $ErrorMessage
     AddValues "ERROR" $Information
 
     # Envoi de la trap
     AddValues "ERROR" "Envoi de la trap en erreur"
-    [Reflection.Assembly]::LoadWithPartialName("System.Web") | Out-Null
-	$Information = [System.Web.HttpUtility]::UrlEncode($Information) 
-    $Send_Trap = & ${Path}"TrapGen.exe" "-d" $EonServ "-c" $Community "-o" $SOID "-i" $SIP "-v" $OID "STRING" $Hostname "-v" $OID "STRING" $Service "-v" $OID "INTEGER" $Status "-v" $OID "STRING" "$Information"
-    AddValues "ERROR" "${Path}TrapGen.exe -d $EonServ -c $Community -o $SOID -i $SIP -v $OID STRING $Hostname -v $OID STRING $Service -v $OID INTEGER $Status -v $OID STRING $Information -p a"
-
+ 	$Send_Trap = & ${Path}nrdp.ps1 -url "http://${EonServ}/nrdp" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
+	AddValues "ERROR" "${Path}nrdp.ps1 -url 'http://${EonServ}/nrdp' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
 	exit 2
 
 }
@@ -88,18 +84,18 @@ $PerfData = GetPerfdata $Services $Chrono $BorneInferieure $BorneSuperieure
 # Dépassement de seuil global ou unitaire
 if (($PerfData[0] -gt $BorneSuperieure) -or ($PerfData[3] -ne ""))
 {
-	$Status = 2
+	$Status = "CRITICAL"
     AddValues "WARN" "Envoi de la trap en dépassement de seuil"
 }
 elseif (($PerfData[0] -gt $BorneInferieure) -or ($PerfData[2] -ne "")) 
 { 
-	$Status = 1
+	$Status = "WARNING"
     AddValues "WARN" "Envoi de la trap en dépassement de seuil"
 }
 # Exécution normale
 else
 {
-	$Status = 0
+	$Status = "OK"
     AddValues "INFO" "Envoi de la trap en fonctionnement normal"
 }
 
@@ -108,15 +104,13 @@ AddValues "INFO" "Purge des processus"
 PurgeProcess $WindowName
 
 # Envoi de la trap
-$Information = $Etat[$Status] + " : " + $Service + " " + $PerfData[0] + "s" 
+$Information = $Status + " : " + $Service + " " + $PerfData[0] + "s" 
 if($PerfData[2] -ne "") { $Information = $Information + " " + $PerfData[2] }
 if($PerfData[3] -ne "") { $Information = $Information + " " + $PerfData[3] }
 $Information = $Information + $PerfData[1]
 AddValues "INFO" $Information
-[Reflection.Assembly]::LoadWithPartialName("System.Web") | Out-Null
-$Information = [System.Web.HttpUtility]::UrlEncode($Information) 
-$Send_Trap = & ${Path}"TrapGen.exe" "-d" $EonServ "-c" $Community "-o" $SOID "-i" $SIP "-v" $OID "STRING" $Hostname "-v" $OID "STRING" $Service "-v" $OID "INTEGER" $Status "-v" $OID "STRING" "$Information"
-AddValues "INFO" "${Path}TrapGen.exe -d $EonServ -c $Community -o $SOID -i $SIP -v $OID STRING $Hostname -v $OID STRING $Service -v $OID INTEGER $Status -v $OID STRING $Information -p a"
+$Send_Trap = & ${Path}nrdp.ps1 -url "http://${EonServ}/nrdp" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
+AddValues "INFO" "${Path}nrdp.ps1 -url 'http://${EonServ}/nrdp' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
 
 # Fin de la sonde
 AddValues "INFO" "Fin de la sonde"

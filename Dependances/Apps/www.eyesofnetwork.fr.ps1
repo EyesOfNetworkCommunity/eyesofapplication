@@ -27,7 +27,7 @@ $User = ""
 $Pass = ""
 
 # --- Host, Service, données de performances et seuils Nagios
-$Hostname = "e-pc-qualif32" # Definition du Host dans EON pour l'envoi de trap
+$Hostname = "sondes-applicatives" # Definition du Host dans EON pour l'envoi de trap
 $Service = "www.eyesofnetwork.fr" # Definition du service dans EON pour l'envoi de trap
 $Services = ("Launch","10","15"), 
             ("Download","10","15") # Renseigner ici le nom des différents tests et les seuils
