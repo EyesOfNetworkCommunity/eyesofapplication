@@ -111,6 +111,11 @@ function validate_state ([string]$strState) {
 }
 
 function post_data ([string]$strURL, [string]$strToken, [string]$xmlPost) {
+   if($strURL -like "https://*") {
+      [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+      $wc = New-Object System.Net.WebClient 
+      $src = $wc.downloadstring($strURL)
+   }
    $webAgent = New-Object System.Net.WebClient
    $nvcWebData = New-Object System.Collections.Specialized.NameValueCollection
    $nvcWebData.Add('token', $strToken)

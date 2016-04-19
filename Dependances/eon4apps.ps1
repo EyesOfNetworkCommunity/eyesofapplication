@@ -14,7 +14,8 @@ Param(
 	[Parameter(Mandatory=$true)]
 	[string]$App,
 	[string]$EonServ="",
-	[string]$EonToken=""
+	[string]$EonToken="",
+	[string]$EonUrl="http://${EonServ}/nrdp"
 )
 if(!$EonServ -or !$EonToken) { throw "Please define EonServ and EonToken" }
 
@@ -72,8 +73,8 @@ Catch {
 
     # Envoi de la trap
     AddValues "ERROR" "Envoi de la trap en erreur"
- 	$Send_Trap = & ${Path}ps_nrdp.ps1 -url "http://${EonServ}/nrdp" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
-	AddValues "ERROR" "${Path}ps_nrdp.ps1 -url 'http://${EonServ}/nrdp' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
+ 	$Send_Trap = & ${Path}ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
+	AddValues "ERROR" "${Path}ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
 	exit 2
 
 }
@@ -109,8 +110,8 @@ if($PerfData[2] -ne "") { $Information = $Information + " " + $PerfData[2] }
 if($PerfData[3] -ne "") { $Information = $Information + " " + $PerfData[3] }
 $Information = $Information + $PerfData[1]
 AddValues "INFO" $Information
-$Send_Trap = & ${Path}ps_nrdp.ps1 -url "http://${EonServ}/nrdp" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
-AddValues "INFO" "${Path}ps_nrdp.ps1 -url 'http://${EonServ}/nrdp' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
+$Send_Trap = & ${Path}ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
+AddValues "INFO" "${Path}ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
 
 # Fin de la sonde
 AddValues "INFO" "Fin de la sonde"
