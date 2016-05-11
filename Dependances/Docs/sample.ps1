@@ -24,7 +24,8 @@ $Url = ""
 
 # --- Authentification
 $User = ""
-$Pass = ""
+$Pass = GetCryptedPass("Password") # Première exécution 
+#$Pass = GetCryptedPass # Exécutions suivantes
 
 # --- Host, Service, données de performances et seuils Nagios
 $Hostname = "sondes-applicatives" # Definition du Host dans EON pour l'envoi de trap

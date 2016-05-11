@@ -342,3 +342,25 @@ Function GetPerfdata
     return @($ChronoTotal,$PerfData,$ServicesW,$ServicesC)
 
 }
+
+# Cryptage du password
+Function GetCryptedPass 
+{
+
+    param (
+        [Parameter(Mandatory=$false)][string]$Password
+    )
+
+    if($Password) {
+        $Password | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString | Out-File $PassApp
+    }
+    
+    $SecurePassword = Get-Content $PassApp | ConvertTo-SecureString
+    $Marshal = [System.Runtime.InteropServices.Marshal]
+    $Bstr = $Marshal::SecureStringToBSTR($SecurePassword)
+    $Password = $Marshal::PtrToStringAuto($Bstr)
+    $Marshal::ZeroFreeBSTR($Bstr)
+
+    return $Password
+
+}

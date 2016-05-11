@@ -29,6 +29,7 @@ If (!(Test-Path $Init)){ throw [System.IO.FileNotFoundException] "$Init not foun
 
 # Chargement de l'application
 $InitApp = $PathApps + $App + ".ps1"
+$PassApp = $PathApps + $App + ".pass"
 If (!(Test-Path $InitApp)){ throw [System.IO.FileNotFoundException] "$InitApp not found" }
 . $InitApp
 
