@@ -30,3 +30,5 @@ Copy-Item -Path $Path"\Dependances\ps_nrdp.ps1" -Destination $ApxPath
 
 #SCHTASKS /Create /SC MINUTE /MO 5 /TN EON4APPS_PURGE /TR "powershell -WindowStyle hidden -ExecutionPolicy Bypass -File '$Purge'"
 SCHTASKS /Create /SC MINUTE /MO 5 /TN EON4APPS /TR "powershell -WindowStyle Minimized -ExecutionPolicy Bypass -File '$Sonde' www.eyesofnetwork.fr $EonServ $EonToken"
+
+regedit /S $Path"\Dependances\Creat_Service.reg"
