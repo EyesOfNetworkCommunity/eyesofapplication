@@ -1,4 +1,4 @@
-﻿#*********************************************************************************************************************************************#
+#*********************************************************************************************************************************************#
 #*                                                                                                                                           *#
 #* Powershell                                                                                                                                *#
 #* Author:LEVY Jean-Philippe                                                                                                                 *#
@@ -39,18 +39,22 @@ Function Click-MouseButton
     if($Button -eq "double")
     {
         & $Path\EON-Keyboard.exe -c L
+	Start-sleep 1
     }
     if($Button -eq "left")
     {
         & $Path\EON-Keyboard.exe -c l
+	Start-sleep 1
     }
     if($Button -eq "right")
     {
         & $Path\EON-Keyboard.exe -c r
+	Start-sleep 1
     }
     if($Button -eq "middle")
     {
         & $Path\EON-Keyboard.exe -c m
+	Start-sleep 1
     }
 }
 
@@ -58,12 +62,14 @@ Function Send-SpecialKeys
 {
     param([string] $KeysToPress)
     & $Path\EON-Keyboard.exe -S $KeysToPress
+    Start-sleep 1
 }
 
 Function Send-Keys
 {
     param([string] $KeysToPress)
     & $Path\EON-Keyboard.exe -s $KeysToPress
+    Start-sleep 1
 }
 
 # Fonction pour move the mouse
@@ -226,6 +232,7 @@ Function ImageSearch
 		
 		if ($State -ne 0) {
 		# Image trouvée
+		AddValues "INFO" "ImageSearch ---> $out"
 		$xx1 = [int]$out.Split('|')[1] 
 	    $yy1 = [int]$out.Split('|')[2]
 		$tx = [int]$out.Split('|')[3]
@@ -280,6 +287,10 @@ Function ImageSearch
 # Function de click gauche
 Function ImageClick($xy,$xoffset,$yoffset,$type="left")
 {
+	$x = [int]$xy[0]
+	$y = [int]$xy[1]
+	AddValues "INFO" "Imageclick position ---> x:$x,y:$y"
+	
 	If ($xoffset -ne $null) {
 		$x = [int]$xy[0] + $xoffset
 		$y = [int]$xy[1]
@@ -290,7 +301,8 @@ Function ImageClick($xy,$xoffset,$yoffset,$type="left")
 		$y = [int]$xy[1] + $yoffset
 		$xy=@($x,$y)
 	}
-
+	AddValues "INFO" "Imageclick offseted position ---> x:$x,y:$y"
+	
 	$SetX = [int]$xy[0]
 	$SetY = [int]$xy[1]
     [system.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") | out-null
@@ -362,5 +374,4 @@ Function GetCryptedPass
     $Marshal::ZeroFreeBSTR($Bstr)
 
     return $Password
-
 }
