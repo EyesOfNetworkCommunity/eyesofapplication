@@ -23,7 +23,7 @@ Copy-Item -Path $Path"\Dependances\pscp.exe" -Destination $ApxPath
 Copy-Item -Path $Path"\Dependances\purge.ps1" -Destination $ApxPath
 Copy-Item -Path $Path"\Dependances\purge.bat" -Destination $ApxPath
 Copy-Item -Path $Path"\Dependances\nssm.exe" -Destination $ApxPath
-Copy-Item -Path $Path"\Dependances\Create_Service.reg" -Destination $ApxPath
+Copy-Item -Path $Path"\Dependances\Creat_Service.reg" -Destination $ApxPath
 Copy-Item -Path $Path"\Dependances\ps_nrdp.ps1" -Destination $ApxPath
 
 #SCHTASKS /Create /SC MINUTE /MO 5 /TN EON4APPS_PURGE /TR "powershell -WindowStyle hidden -ExecutionPolicy Bypass -File '$Purge'"
