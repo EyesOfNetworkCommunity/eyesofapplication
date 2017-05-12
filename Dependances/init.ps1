@@ -40,22 +40,22 @@ Function Click-MouseButton
     if($Button -eq "double")
     {
         & $Path\EON-Keyboard.exe -c L
-	Start-sleep 1
+		Start-sleep 1
     }
     if($Button -eq "left")
     {
         & $Path\EON-Keyboard.exe -c l
-	Start-sleep 1
+		Start-sleep 1
     }
     if($Button -eq "right")
     {
         & $Path\EON-Keyboard.exe -c r
-	Start-sleep 1
+		Start-sleep 1
     }
     if($Button -eq "middle")
     {
         & $Path\EON-Keyboard.exe -c m
-	Start-sleep 1
+		Start-sleep 1
     }
 }
 
@@ -121,17 +121,18 @@ function Set-Active
     param (
         [int] $ProcessPid
     )
-	echo "PID ---> $ProcessPid"
+	AddValues "INFO" "PID ---> $ProcessPid"
+	Start-Sleep 3 #Avoid slow machine windows scheduler confusing... #IamDreaming....
     $type = Add-Type -MemberDefinition @"
     [DllImport("user32.dll")]
     public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 "@ -Name SetWindowPosition -Namespace SetWindowPos -Using System.Text -PassThru
     
-    $handle = (Get-Process -id $ProcessPid).MainWindowHandle 
-    $OnTop = New-Object -TypeName System.IntPtr -ArgumentList (-1) 
-    $type::SetWindowPos($handle, $OnTop, 0, 0, 0, 0, 0x0003)
-	$OnBottom = New-Object -TypeName System.IntPtr -ArgumentList (-2) #<--- This stupid workaround is because of this stupid OS
-    $type::SetWindowPos($handle, $OnBottom, 0, 0, 0, 0, 0x0003)
+   $handle = (Get-Process -id $ProcessPid).MainWindowHandle 
+   $OnTop = New-Object -TypeName System.IntPtr -ArgumentList (-1) 
+   $type::SetWindowPos($handle, $OnTop, 0, 0, 0, 0, 0x0003)
+   $OnBottom = New-Object -TypeName System.IntPtr -ArgumentList (-2) #<--- This stupid workaround is because of this stupid OS
+   $type::SetWindowPos($handle, $OnBottom, 0, 0, 0, 0, 0x0003) 
 }
 
 function Set-ActiveByHandler
@@ -222,13 +223,14 @@ Function ImageSearch
 		[int] $ImageSearchVerbosity,
 		[string] $EonSrv,
 		[int] $Wait=250,
-		[int] $noerror=0
+		[int] $noerror=0,
+		[int] $variance=0
     )
 
     If (!(Test-Path $Image)){ throw [System.IO.FileNotFoundException] "$Image not found" }
 	$ImageFound = 0
     for($i=1;$i -le $ImageSearchRetries;$i++)  {
-        $out = & $Path"\GetImageLocation.exe" $Image 0  
+        $out = & $Path"\GetImageLocation.exe" $Image 0 $variance 
         $State = [int]$out.Split('|')[0]
 		
 		if ($State -ne 0) {
@@ -261,7 +263,7 @@ Function ImageSearch
 	
 	if (($ImageFound -ne 1) -and ($noerror -eq 0))
 	{
-		$out = & $Path"\GetImageLocation.exe" $Image $ImageSearchVerbosity  
+		$out = & $Path"\GetImageLocation.exe" $Image $ImageSearchVerbosity $variance  
         $State = [int]$out.Split('|')[0]
 		$xy=@(0,0)
 		if ($State -eq 0) {
