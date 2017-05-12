@@ -84,10 +84,9 @@ Function LoadApp($Chrono)
 
 	    AddValues "INFO" "Accès page téléchargements"
         Start-Sleep 2
-        $xy=ImageSearch $Image_menu $ImageSearchRetries $ImageSearchVerbosity $EonServ
-        ImageClick($xy)
         $xy=ImageSearch $Image_download_link $ImageSearchRetries $ImageSearchVerbosity $EonServ
         ImageClick($xy)
+        $xy=ImageSearch $Image_download_title $ImageSearchRetries $ImageSearchVerbosity $EonServ
         Start-Sleep 2 
            
     }

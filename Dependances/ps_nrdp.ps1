@@ -12,8 +12,6 @@ param (
     [switch]$help = $false
 )
 
-[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
-
 Set-StrictMode -Version 2.0
 
 function proc_input([string]$strHostname, [string]$strService, [string]$strState, [string]$strOutput, [int]$bCheckType) {

@@ -18,6 +18,7 @@ $Chrono=@()#Ne pas modifier
 $BorneInferieure = 0#Ne pas modifier
 $BorneSuperieure = 0#Ne pas modifier
 $PerfData = " | "#Ne pas modifier
+$PurgeDelay = 60#Ne pas modifier
 
 #********************************************************************FONCTIONS*****************************************************************
 

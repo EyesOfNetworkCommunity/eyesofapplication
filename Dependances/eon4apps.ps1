@@ -15,7 +15,7 @@ Param(
 	[string]$App,
 	[string]$EonServ="",
 	[string]$EonToken="",
-	[string]$EonUrl="http://${EonServ}/nrdp"
+	[string]$EonUrl="https://${EonServ}/nrdp"
 )
 if(!$EonServ -or !$EonToken) { throw "Please define EonServ and EonToken" }
 
@@ -26,6 +26,9 @@ $ScriptPath = (Split-Path ((Get-Variable MyInvocation).Value).MyCommand.Path)
 $Init = $ScriptPath + "\init.ps1"
 If (!(Test-Path $Init)){ throw [System.IO.FileNotFoundException] "$Init not found" }
 . $Init
+
+# Purge
+Get-ChildItem -Path $Path\log\ -Filter *.bmp -Force | Where-Object { $_.CreationTime -lt (Get-Date).AddMinutes(-$PurgeDelay) } | Remove-Item -Force -Recurse
 
 # Chargement de l'application
 $InitApp = $PathApps + $App + ".ps1"
