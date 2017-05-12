@@ -15,7 +15,8 @@ Param(
 	[string]$App,
 	[string]$EonServ="",
 	[string]$EonToken="",
-	[string]$EonUrl="https://${EonServ}/nrdp"
+	[string]$EonUrl="https://${EonServ}/nrdp",
+	[bool]$PurgeProcess=$true
 )
 if(!$EonServ -or !$EonToken) { throw "Please define EonServ and EonToken" }
 
@@ -55,8 +56,10 @@ New-Item $CheminDossierImages -Type directory -force -value "" |out-null
 Get-ChildItem $CheminDossierImages -Filter *.bmp |foreach { $name = $_.BaseName ; New-Variable -Force -Name "Image_${name}" -Value $_.FullName }
 
 # Purge des processus
-AddValues "INFO" "Purge des processus"
-PurgeProcess $WindowName
+if($PurgeProcess -eq $true) {
+	AddValues "INFO" "Purge des processus"
+	PurgeProcess $WindowName
+}
 
 # Chargement de l'application
 Try {
@@ -65,9 +68,11 @@ Try {
 Catch {
 
     # Purge des processus
-    AddValues "INFO" "Purge des processus"
-    PurgeProcess $WindowName
-
+	if($PurgeProcess -eq $true) {
+		AddValues "INFO" "Purge des processus"
+		PurgeProcess $WindowName
+	}
+		
     # Ajouter le service en cours en erreur
     $ErrorMessage = $_.Exception.Message
     AddValues "ERROR" $ErrorMessage
@@ -105,9 +110,11 @@ else
 }
 
 # Purge des processus
-AddValues "INFO" "Purge des processus"
-PurgeProcess $WindowName
-
+if($PurgeProcess -eq $true) {
+	AddValues "INFO" "Purge des processus"
+	PurgeProcess $WindowName
+}
+	
 # Envoi de la trap
 $Information = $Status + " : " + $Service + " " + $PerfData[0] + "s" 
 if($PerfData[2] -ne "") { $Information = $Information + " " + $PerfData[2] }
