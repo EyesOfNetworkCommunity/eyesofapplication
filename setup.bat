@@ -1,0 +1,1 @@
+powershell -WindowStyle Maximized -ExecutionPolicy Bypass -File .\Install.ps1
