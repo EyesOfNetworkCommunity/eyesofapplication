@@ -22,6 +22,7 @@ if(!$EonServ -or !$EonToken) { throw "Please define EonServ and EonToken" }
 
 # Récupération du path
 $ScriptPath = (Split-Path ((Get-Variable MyInvocation).Value).MyCommand.Path) 
+Push-Location $ScriptPath
 
 # Variables et Fonctions
 $Init = $ScriptPath + "\init.ps1"
@@ -126,6 +127,7 @@ AddValues "INFO" "${Path}ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -host
 
 # Fin de la sonde
 AddValues "INFO" "Fin de la sonde"
+Pop-Location
 exit 0
 
 #*********************************************************************************************************************************#
