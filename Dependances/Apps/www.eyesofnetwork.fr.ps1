@@ -45,6 +45,10 @@ Foreach($svc in $Services) {
     $BorneSuperieure += $svc[2]  
 }
 
+# Variabilise the excution path.
+$ScriptPath = split-path -parent $MyInvocation.MyCommand.Definition
+cd $ScriptPath\..
+
 # --- Chargement de l'application
 Function LoadApp($Chrono)
 {
