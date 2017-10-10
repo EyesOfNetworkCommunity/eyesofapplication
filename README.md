@@ -15,7 +15,7 @@ Extrayez le dossier téléchargé. Pour lancer l’installation il vous faudra t
 Lancez ensuite le fichier setup.bat.
 Renseignez les informations demandées selon vos critères :
 
-![Screenshot](Dependances/Dependances/docs/DocImg/cscr2.png)
+![Screenshot](Dependances/docs/DocImg/cscr2.png)
 ![Screenshot](Dependances/docs/DocImg/cscr3.png)
 
 Vous avez à présent un nouveau dossier à la racine de votre disque.
@@ -30,7 +30,7 @@ $TargetedEON : Adresse IP de votre EON
 $NrdpToken : Votre token
 $GUI_Equipement_InEON : Nom de votre hôte Windows sur EON
 
-Dé-commentez la ligne correspondant à votre version de Firefox installé sur votre poste Windows 10.
+Dé-commentez la ligne correspondant à votre version de Firefox installé sur votre poste Windows.
 Dans l’exemple, le poste a la version 32 bits de Firefox d’installé.
 
 ![Screenshot](Dependances/docs/DocImg/cscr6.png)
@@ -47,7 +47,7 @@ Le programme utilise une connexion SSH via une paire de clés. Il vous faut cré
 
 ![Screenshot](Dependances/docs/DocImg/cscr8.png)
 
-Une fois ceci fait, retournez sur votre poste Windows 10. Ouvrez PowerShell en administrateur et lancez cette commande pour récupérer la clé et l’envoyer dans le bon dossier.
+Une fois ceci fait, retournez sur votre poste Windows. Ouvrez PowerShell en administrateur et lancez cette commande pour récupérer la clé et l’envoyer dans le bon dossier.
 
 ![Screenshot](Dependances/docs/DocImg/cscr9.png)
 
@@ -82,7 +82,7 @@ Ces services récupèrerons les informations qu’enverra EOA à EON, ce sont de
 
 <h1>Partie 4 – Utilisation et Tests</h1>
 <p>
-Maintenant que la configuration est terminée, passons à l’utilisations d’EOA. EOA Simule un utilisateur, le script fait une recherche d’image puis clique et si elle ne la trouve pas, l’envoie à EON. Rendez-vous sur votre poste Windows 10.
+Maintenant que la configuration est terminée, passons à l’utilisations d’EOA. EOA Simule un utilisateur, le script fait une recherche d’image puis clique et si elle ne la trouve pas, l’envoie à EON. Rendez-vous sur votre poste Windows.
 Lancez l’application EyesOfApplicationGUI.exe, et laissez-la travailler quelques instants. Elle ouvrira le site www.eyesofnetwork.fr sur Firefox et tentera de cliquer sur le bouton téléchargement du site. Si elle n’y arrive pas, elle envoie l’erreur à EON en prenant une capture d’écran.
 Pour vérifier que tout s’est bien passé, vérifiez sur EON le service non-user de votre hôte :
 
@@ -105,7 +105,7 @@ Vous devriez obtenir ceci :
 
 ![Screenshot](Dependances/docs/DocImg/cscr20.png)
 
-Pour vérifier que la commande a bien fonctionnée sur EON, allez sur le lien suivant https://[EON_SRV]/nrdp/. Entrez le nom de votre token (ici toke) et cliquez sur Submit Check Data :
+Pour vérifier que la commande a bien fonctionnée sur EON, allez sur le lien suivant https://IP_EON/nrdp/. Entrez le nom de votre token (ici toke) et cliquez sur Submit Check Data :
 
 ![Screenshot](Dependances/docs/DocImg/cscr21.png)
 
