@@ -1,26 +1,22 @@
 [void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic') 
-$EonServ = [Microsoft.VisualBasic.Interaction]::InputBox("IP du serveur EON", "Configuration NRDP", "")
-$EonToken = [Microsoft.VisualBasic.Interaction]::InputBox("Token NRDP", "Configuration NRDP", "")
+$EonServ = [Microsoft.VisualBasic.Interaction]::InputBox("IP of the EON server", "NRDP configuration", "")
+$EonToken = [Microsoft.VisualBasic.Interaction]::InputBox("NRDP Token", "NRDP configuration", "")
 
 $Path = Get-Location
-$ApxPath = "C:\eon\APX\EON4APPS\"
+$ApxPath = "C:\Axians\EOA\"
 $Purge = $ApxPath + "purge.ps1"
-$Sonde = $ApxPath + "eon4apps.ps1"
+$Sonde = $ApxPath + "ps\eon4apps.ps1"
 
-New-Item "C:\eon\APX" -Type directory
-New-Item "C:\eon\APX\EON4APPS" -Type directory
-Copy-Item -Path $Path"\Dependances\Apps" -Destination $ApxPath -Recurse
-Copy-Item -Path $Path"\Dependances\Docs" -Destination $ApxPath -Recurse
-Copy-Item -Path $Path"\Dependances\Images" -Destination $ApxPath -Recurse
-Copy-Item -Path $Path"\Dependances\log" -Destination $ApxPath -Recurse
+New-Item $ApxPath -Type directory
+New-Item $ApxPath"\log" -Type directory
+
+Copy-Item -Path $Path"\Dependances\apps" -Destination $ApxPath -Recurse
+Copy-Item -Path $Path"\Dependances\bin" -Destination $ApxPath -Recurse
+Copy-Item -Path $Path"\Dependances\docs" -Destination $ApxPath -Recurse
+Copy-Item -Path $Path"\Dependances\images" -Destination $ApxPath -Recurse
+Copy-Item -Path $Path"\Dependances\lib" -Destination $ApxPath -Recurse
+Copy-Item -Path $Path"\Dependances\ps" -Destination $ApxPath -Recurse
 Copy-Item -Path $Path"\Dependances\sshkey" -Destination $ApxPath -Recurse
-Copy-Item -Path $Path"\Dependances\GetImageLocation.exe" -Destination $ApxPath
-Copy-Item -Path $Path"\Dependances\EON-Keyboard.exe" -Destination $ApxPath
-Copy-Item -Path $Path"\Dependances\ImageSearchDLL.dll" -Destination $ApxPath
-Copy-Item -Path $Path"\Dependances\eon4apps.ps1" -Destination $ApxPath
-Copy-Item -Path $Path"\Dependances\init.ps1" -Destination $ApxPath
-Copy-Item -Path $Path"\Dependances\pscp.exe" -Destination $ApxPath
-Copy-Item -Path $Path"\Dependances\ps_nrdp.ps1" -Destination $ApxPath
-Copy-Item -Path $Path"\Dependances\SetScreenSetting.exe" -Destination $ApxPath
+Copy-Item -Path $Path"\Dependances\EyesOfApplicationGUI.exe" -Destination $ApxPath
 
-SCHTASKS /Create /SC MINUTE /MO 5 /TN EON4APPS /TR "powershell -WindowStyle Minimized -ExecutionPolicy Bypass -File '$Sonde' www.eyesofnetwork.fr $EonServ $EonToken"
+SCHTASKS /Create /SC MINUTE /MO 5 /TN EON4APPS /TR "powershell -WindowStyle Minimized -ExecutionPolicy Bypass -File '$Sonde' www.eyesofnetwork.fr $EonServ $EonToken https://$EonServ/nrdp/ true"

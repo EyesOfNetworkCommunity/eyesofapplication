@@ -12,17 +12,16 @@ param (
     [switch]$help = $false
 )
 
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+
 Set-StrictMode -Version 2.0
 
 function proc_input([string]$strHostname, [string]$strService, [string]$strState, [string]$strOutput, [int]$bCheckType) {
-    $xmlBuilder = "<?xml version='1.0'?>`n<checkresults>`n"
-    if (!$strService) {
-        $xmlBuilder += generate_host_check $strHostname $strState $strOutput $bCheckType
-    } else {
-        $xmlBuilder += generate_service_check $strHostname $strService $strState $strOutput $bCheckType
-    }
-    $xmlBuilder += "</checkresults>"
-    return $xmlBuilder
+
+    $statecode = validate_state $strState
+    $cmdBuilder = "PROCESS_SERVICE_CHECK_RESULT;" + $strHostname + ";" + $strService + ";" + $statecode + ";" + $strOutput
+    #Write-Host $cmdBuilder
+    return $cmdBuilder
 }
 
 function proc_file ([string]$strFile, [char]$chrDelim) {
@@ -110,7 +109,7 @@ function validate_state ([string]$strState) {
     }
 }
 
-function post_data ([string]$strURL, [string]$strToken, [string]$xmlPost) {
+function post_data ([string]$strURL, [string]$strToken, [string]$cmdPost) {
    if($strURL -like "https://*") {
       [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
       $wc = New-Object System.Net.WebClient 
@@ -119,8 +118,8 @@ function post_data ([string]$strURL, [string]$strToken, [string]$xmlPost) {
    $webAgent = New-Object System.Net.WebClient
    $nvcWebData = New-Object System.Collections.Specialized.NameValueCollection
    $nvcWebData.Add('token', $strToken)
-   $nvcWebData.Add('cmd', 'submitcheck')
-   $nvcWebData.Add('XMLDATA', $xmlPost)
+   $nvcWebData.Add('cmd', 'submitcmd')
+   $nvcWebData.Add('command', $cmdPost)
    $strWebResponse = $webAgent.UploadValues($strURL, 'POST', $nvcWebData)
    $strReturn = [System.Text.Encoding]::ASCII.GetString($strWebResponse)
    if ($strReturn.Contains("<message>OK</message>")) {
@@ -141,32 +140,32 @@ function help {
     Write-Host "`nUsage: ./ps_nrdp.ps1 -url <Nagios NRDP URL> -token <Token> [-hostname <Hostname> -state <State> -output <Information|Perfdata> [-service <service name> -checktype <0/1>] | -file <File path> [-delim <Field delimiter>] | -readterm [-delim <Field delimiter> ]]`n`n"
     Write-Host @'
 -url
-	The URL used to access the remote NRDP agent. i.e. http://nagiosip/nrdp/
+    The URL used to access the remote NRDP agent. i.e. http://nagiosip/nrdp/
 -token
-	The authentication token used to access the remote NRDP agent.
+    The authentication token used to access the remote NRDP agent.
 -hostname
-	The name of the host associated with the passive host/service check result. 
-	This script will attempt to learn the hostname if not supplied.
+    The name of the host associated with the passive host/service check result. 
+    This script will attempt to learn the hostname if not supplied.
 -service
-	For service checks, the name of the service associated with the passive check result.
+    For service checks, the name of the service associated with the passive check result.
 -state
-	The state of the host or service. Valid values are: OK, CRITICAL, WARNING, UNKNOWN
+    The state of the host or service. Valid values are: OK, CRITICAL, WARNING, UNKNOWN
 -output
-	Text output to be sent as the passive check result.
+    Text output to be sent as the passive check result.
 -delim
-	Used to set the text field delimiter when using non-XML file input or command-line input. 
-	Defaults to tab (\\t).
+    Used to set the text field delimiter when using non-XML file input or command-line input. 
+    Defaults to tab (\\t).
 -checktype
-	Used to specify active or passive, 0 = active, 1 = passive. Defaults to passive.
+    Used to specify active or passive, 0 = active, 1 = passive. Defaults to passive.
 -file
-	Use this switch to specify the full path to a file to read. There are two usable formats:
-	1. A field-delimited text file, where the delimiter is specified by -d
-	2. An XML file in NRDP input format. An example can be found by browsing to the NRDP API URL. 
+    Use this switch to specify the full path to a file to read. There are two usable formats:
+    1. A field-delimited text file, where the delimiter is specified by -d
+    2. An XML file in NRDP input format. An example can be found by browsing to the NRDP API URL. 
 -readterm
-	This switch specifies that you wish to input the check via standard input on the command line.
+    This switch specifies that you wish to input the check via standard input on the command line.
 -help
-	Display this help text.
-	
+    Display this help text.
+    
 '@
     exit
 }
@@ -203,18 +202,18 @@ if (!$hostname) {
 }
 
 if ($file) {
-    $xmlPost = proc_file $file $delim
+    $cmdPost = proc_file $file $delim
 } elseif ($readterm) {
-    $xmlPost = proc_terminal $delim $checktype
+    $cmdPost = proc_terminal $delim $checktype
 } elseif ($hostname -and $state -and $output) {
-    $xmlPost = proc_input $hostname $service $state $output $checktype
+    $cmdPost = proc_input $hostname $service $state $output $checktype
 } else {
     Write-Host "Incorrect options set."
     help
 }
 
-if ($xmlPost) {
-    post_data $url $token $xmlPost
+if ($cmdPost) {
+    post_data $url $token $cmdPost
 } else {
     Write-Host "Something has gone horribly wrong! XML build failed, bailing out..."
 }

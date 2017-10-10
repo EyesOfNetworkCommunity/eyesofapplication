@@ -3,14 +3,14 @@
 #* Powershell                                                                                                                                *#
 #* Author:LEVY Jean-Philippe                                                                                                                 *#
 #*                                                                                                                                           *#
-#* Script Function: Purge des images de debug EON4APPPS                                                                                      *#
+#* Script Function: Purge des images de debug EON4APPPS Purge debug pictures of EON4APPS                                                                                      *#
 #*                                                                                                                                           *#
 #*********************************************************************************************************************************************#
 
-# Récupération du path
+# Path recovery
 $ScriptPath = (Split-Path ((Get-Variable MyInvocation).Value).MyCommand.Path) 
 
-# Variables et Fonctions
+# Variables and Fonctions
 $Init = $ScriptPath + "\init.ps1"
 If (!(Test-Path $Init)){ throw [System.IO.FileNotFoundException] "$Init not found" }
 . $Init
