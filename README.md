@@ -105,7 +105,7 @@ Vous devriez obtenir ceci :
 
 ![Screenshot](Dependances/docs/DocImg/cscr20.png)
 
-Pour vérifier que la commande a bien fonctionnée sur EON, allez sur le lien suivant https://10.140.184.253/nrdp/. Entrez le nom de votre token (ici toke) et cliquez sur Submit Check Data :
+Pour vérifier que la commande a bien fonctionnée sur EON, allez sur le lien suivant https://[EON_SRV]/nrdp/. Entrez le nom de votre token (ici toke) et cliquez sur Submit Check Data :
 
 ![Screenshot](Dependances/docs/DocImg/cscr21.png)
 
