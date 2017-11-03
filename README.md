@@ -43,7 +43,7 @@ Enfin, renommez le $Hostname :
 
 <h1>Partie 2 – Configuration SSH</h1>
 <p>
-Le programme utilise une connexion SSH via une paire de clés. Il vous faut créer cette paire de clés, pour ce faire rendez-vous sur votre serveur EON. Dirigez-vous dans le dossier /srv/eyesofnetwork/eon4apps/.ssh. Utilisez la commande ssh-keygen –t dsa.
+Le programme utilise une connexion SSH via une paire de clés. Il vous faut créer cette paire de clés, pour ce faire rendez-vous sur votre serveur EON. En tant qu'utilisateur "eon4apps" exécuter la commande "ssh-keygen –t dsa". Dirigez-vous ensuite dans le dossier "/srv/eyesofnetwork/eon4apps/.ssh" afin de retrouver la paire de clé précédement générée. 
 
 ![Screenshot](Dependances/docs/DocImg/cscr8.png)
 
