@@ -73,7 +73,7 @@ if ( (Test-Path $TempPathAppsLnk) ) {
     $InitApp = $PathApps + $App + ".ps1" -replace "\\ps\\", "\\" 
 }
 
-$PassApp = $PathApps + $App + ".pass"
+$PassApp = $ScriptPath + "\..\apps\" + $App + ".pass"
 if ( ! (Test-Path $InitApp) )
     { 
         AddValues "INFO" "$InitApp not found"
@@ -156,15 +156,18 @@ $cmd = Measure-Command {
         $ie.Navigate($Url)
         while ($ie.Busy -eq $true) { start-sleep 1; }
         $app = Get-Process -Name iexplore | Where-Object {$_.MainWindowHandle -eq $ie.HWND}
+		$MyPID = Get-Process -Name iexplore | Where-Object {$_.MainWindowHandle -eq $ie.HWND} | Select-Object -ExpandProperty "Id"
         AddValues "INFO" "Running in web mode..."
     }
 
     # Set application windows on top. 
     start-sleep -s 5 #Waiting for fù(£1n9 windows process handler...
-    $Command_Line_Str="%$ProgExe $ProgArg%" -replace ' ', "%" -replace '\\', '\\'
-    AddValues "INFO" "Selectable CommandLine (${Command_Line_Str})"
-    $MyTablePID = foreach ($i in "${Command_Line_Str}") {Get-WmiObject Win32_Process -Filter "CommandLine like '$i'" | Select ProcessId}
-    $MyPID = $MyTablePID.ProcessId  
+    if(!$ie) {
+        $Command_Line_Str="%$ProgExe $ProgArg%" -replace ' ', "%" -replace '\\', '\\'
+        AddValues "INFO" "Selectable CommandLine (${Command_Line_Str})"
+        $MyTablePID = foreach ($i in "${Command_Line_Str}") {Get-WmiObject Win32_Process -Filter "CommandLine like '$i'" | Select ProcessId}
+        $MyPID = $MyTablePID.ProcessId  
+    }
     AddValues "INFO" "Ask for PID ---> $MyPID"
     Set-Active-Maximized $MyPID
 }
