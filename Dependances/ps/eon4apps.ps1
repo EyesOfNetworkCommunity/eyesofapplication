@@ -13,11 +13,9 @@
 Param(
 	[Parameter(Mandatory=$true)]
 	[string]$App,
-	[string]$EonServ="192.168.46.128",
-	[string]$EonToken="axianscb",
-	#[string]$EonUrl="https://${EonServ}/nrdp",
-    [string]$EonUrl="TEST",	
-    [string]$PurgeProcess="False"
+	[string]$EonServ="",
+	[string]$EonToken="",
+	[string]$EonUrl="https://${EonServ}/nrdp",
 )
 if(!$EonServ -or !$EonToken) { throw "Please define EonServ and EonToken" }
 $App_Backup = $App # Workaround bug of Start-Process made by Microsoft
