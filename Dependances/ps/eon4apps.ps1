@@ -13,10 +13,11 @@
 Param(
 	[Parameter(Mandatory=$true)]
 	[string]$App,
-	[string]$EonServ="",
-	[string]$EonToken="",
-	[string]$EonUrl="https://${EonServ}/nrdp",
-	[string]$PurgeProcess="True"
+	[string]$EonServ="192.168.46.128",
+	[string]$EonToken="axianscb",
+	#[string]$EonUrl="https://${EonServ}/nrdp",
+    [string]$EonUrl="TEST",	
+    [string]$PurgeProcess="False"
 )
 if(!$EonServ -or !$EonToken) { throw "Please define EonServ and EonToken" }
 $App_Backup = $App # Workaround bug of Start-Process made by Microsoft
@@ -125,8 +126,12 @@ Foreach($svc in $Services) {
     $BorneSuperieure +=  $Current_BorneSuperieur
     AddValues "INFO" "Adding counter ($Current_Service) Warning:$Current_BorneInferieur, Critical:$Current_BorneSuperieur"
 }
-AddValues "INFO" "Screen resolution adjustment to ${ExpectedResolutionX}x${ExpectedResolutionY}"
-SetScreenResolution $ExpectedResolutionX $ExpectedResolutionY
+
+# Set resolution if defined
+if(($ExpectedResolutionX -ne $null) -And ($ExpectedResolutionY -ne $null)) { 
+    AddValues "INFO" "Screen resolution adjustment to ${ExpectedResolutionX}x${ExpectedResolutionY}"
+    SetScreenResolution $ExpectedResolutionX $ExpectedResolutionY
+}
 
 # Do not remove. This cd is used to relative path access...
 $ExceScriptPath = split-path -parent $MyInvocation.MyCommand.Definition
@@ -149,27 +154,24 @@ $cmd = Measure-Command {
         AddValues "INFO" "Run: $ProgExe"
     }
     # Web
-    else { 
-        $ie = New-Object -COMObject InternetExplorer.Application
-        $ie.visible = $true
-        $ie.fullscreen = $true
-        $ie.Navigate($Url)
-        while ($ie.Busy -eq $true) { start-sleep 1; }
-        $app = Get-Process -Name iexplore | Where-Object {$_.MainWindowHandle -eq $ie.HWND}
-		$MyPID = Get-Process -Name iexplore | Where-Object {$_.MainWindowHandle -eq $ie.HWND} | Select-Object -ExpandProperty "Id"
+    else {
         AddValues "INFO" "Running in web mode..."
+        $WebMode=1;
+        Start-WebDriver $Navigator
+        $WebDriver.Navigate().GoToUrl($Url);
     }
 
-    # Set application windows on top. 
-    start-sleep -s 5 #Waiting for fù(£1n9 windows process handler...
-    if(!$ie) {
+    # PID for exe execution not for web
+    if(!$WebMode) {
+        # Set application windows on top. 
+        start-sleep -s 5 #Waiting for fù(£1n9 windows process handler...
         $Command_Line_Str="%$ProgExe $ProgArg%" -replace ' ', "%" -replace '\\', '\\'
         AddValues "INFO" "Selectable CommandLine (${Command_Line_Str})"
         $MyTablePID = foreach ($i in "${Command_Line_Str}") {Get-WmiObject Win32_Process -Filter "CommandLine like '$i'" | Select ProcessId}
-        $MyPID = $MyTablePID.ProcessId  
+        $MyPID = $MyTablePID.ProcessId
+        AddValues "INFO" "Ask for PID ---> $MyPID"
+        Set-Active-Maximized $MyPID
     }
-    AddValues "INFO" "Ask for PID ---> $MyPID"
-    Set-Active-Maximized $MyPID
 }
 $Current_Chrono += [math]::Round($cmd.TotalSeconds,6)
 $Chrono += $Current_Chrono
@@ -191,17 +193,21 @@ Catch {
     AddValues "ERROR" $Information
 
     # Send information via NRDP
-    AddValues "ERROR" "Send information of error to monitoring system."
-    if ( $FromGUI -eq $false ) {
- 	  $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
-	   AddValues "ERROR" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
-	}
-    if ( $FromGUI -eq $true ) {
-       $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${GUI_Equipement_InEON}" -service "${App_Backup}" -state "${Status}" -output "${username} on ${Hostname} -> ${Information}"
-       AddValues "ERROR" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${GUI_Equipement_InEON}' -service '${App_Backup}' -state '${Status}' -output '${username} on ${Hostname} -> ${Information}'"
+    if(${EonUrl} -ne "TEST") {
+        AddValues "ERROR" "Send information of error to monitoring system."
+        if ( $FromGUI -eq $false ) {
+ 	      $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
+	       AddValues "ERROR" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
+	    }
+        if ( $FromGUI -eq $true ) {
+           $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${GUI_Equipement_InEON}" -service "${App_Backup}" -state "${Status}" -output "${username} on ${Hostname} -> ${Information}"
+           AddValues "ERROR" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${GUI_Equipement_InEON}' -service '${App_Backup}' -state '${Status}' -output '${username} on ${Hostname} -> ${Information}'"
+        }
     }
-    AddValues "INFO" "Restore screen resolution"
-    $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
+    if(($ExpectedResolutionX -ne $null) -And ($ExpectedResolutionY -ne $null)) { 
+        AddValues "INFO" "Restore screen resolution"
+        $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
+    }
     exit 2
 
 }
@@ -232,20 +238,28 @@ $Information = $Status + " : " + $Service + " " + $PerfData[0] + "s"
 if($PerfData[2] -ne "") { $Information = $Information + " " + $PerfData[2] }
 if($PerfData[3] -ne "") { $Information = $Information + " " + $PerfData[3] }
 $Information = $Information + $PerfData[1]
-AddValues "INFO" $Information
-if ( $FromGUI -eq $false ) {
-    $Send_Trap = &  powershell -ExecutionPolicy ByPass -File  ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
-    AddValues "INFO" "powershell -ExecutionPolicy ByPass -File ${Path}ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
-}
-if ( $FromGUI -eq $true ) {
-    $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${GUI_Equipement_InEON}" -service "${App_Backup}" -state "${Status}" -output "${username} on ${computer} -> ${Information}"
-    AddValues "INFO" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${GUI_Equipement_InEON}' -service '${App_Backup}' -state '${Status}' -output '${username} on ${computer} -> ${Information}'"
+if(${EonUrl} -ne "TEST") {
+    if ( $FromGUI -eq $false ) {
+        $Send_Trap = &  powershell -ExecutionPolicy ByPass -File  ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
+        AddValues "INFO" "powershell -ExecutionPolicy ByPass -File ${Path}ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
+    }
+    if ( $FromGUI -eq $true ) {
+        $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${GUI_Equipement_InEON}" -service "${App_Backup}" -state "${Status}" -output "${username} on ${computer} -> ${Information}"
+        AddValues "INFO" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${GUI_Equipement_InEON}' -service '${App_Backup}' -state '${Status}' -output '${username} on ${computer} -> ${Information}'"
+    }
 }
 
-AddValues "INFO" "Restore screen resolution"
-$out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
+# Restore resolution if defined
+    AddValues "INFO" "Restore screen resolution"
+    $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
+}
 
-# # Purge of process
+# Stop Selenium driver
+if($WebMode) {
+    Stop-WebDriver
+}
+
+# Purge of process
 if($PurgeProcess -eq "True") {
     AddValues "INFO" "Purge of process"
     PurgeProcess

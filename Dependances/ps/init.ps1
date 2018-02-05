@@ -178,8 +178,10 @@ Function ImageSearch
             $PathKey = $Path -replace "\\ps\\", "\sshkey"
 			AddValues "ERROR" "Send the file: ${Path}\..\bin\pscp.exe -i ${Path}..\sshkey\id_dsa -l eon4apps $ScrShot ${EonSrv}:/srv/eyesofnetwork/eon4apps/html/"
 			$SendFile = & ${Path}\..\bin\pscp.exe -i ${PathKey}\id_dsa -l eon4apps $ScrShot "${EonSrv}:/srv/eyesofnetwork/eon4apps/html/"
-            $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
-			$ConcatUrlSend = $Image + ' not found in screen: <a href="/eon4apps/' + $BaseFileName + $BaseFileNameExt + '" target="_blank">' + $ScrShot + '</a>'
+            if(($ExpectedResolutionX -ne $null) -And ($ExpectedResolutionY -ne $null)) { 
+                $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
+			}
+            $ConcatUrlSend = $Image + ' not found in screen: <a href="/eon4apps/' + $BaseFileName + $BaseFileNameExt + '" target="_blank">' + $ScrShot + '</a>'
 			throw [System.IO.FileNotFoundException] "$ConcatUrlSend"
 		}
 	}
@@ -359,4 +361,53 @@ function Minimize-All-Windows
 {
     AddValues "INFO" "Minimize all windows."
     & $Path\..\bin\MinimizeAllWindows.exe
+}
+
+#********************************************************************SELENIUM*****************************************************************
+
+# Load Selenium
+Add-Type -Path "$Path..\selenium\WebDriver.dll"
+$env:PATH += ";$Path..\selenium"
+
+# Start WebDriver
+function Start-WebDriver {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory)]
+        [ValidateSet('Chrome','IE','Firefox')]
+        [String]
+        $Browser
+    )
+
+    if ($global:WebDriver -is [OpenQA.Selenium.IWebDriver]) {
+        AddValues "WARNING" "WebDriver Seems To Already Be Started. Call Stop-WebDriver First Before Starting a New WebDriver Session"
+        Stop-WebDriver
+    }
+
+    switch ($Browser) {
+        'chrome'  {
+            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.Chrome.ChromeDriver
+        }
+        'ie' {
+            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.IE.InternetExplorerDriver
+        }
+        'firefox' {
+            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.Firefox.FirefoxDriver
+        }
+    }
+}
+
+# Stop WebDriver
+function Stop-WebDriver {
+    [CmdletBinding()]
+    Param ()
+
+    if ($global:WebDriver -is [OpenQA.Selenium.IWebDriver]) {
+        $global:WebDriver.Quit()
+        $global:WebDriver = $null
+    }
+    else {
+        AddValues "WARNING" 'WebDriver Does Not Appear To Be Running'
+    }
+    
 }
