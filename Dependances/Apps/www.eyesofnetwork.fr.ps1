@@ -42,7 +42,7 @@ $Services = ("Launch","7","10"), # Please lauch time interger 5 seconds wait for
 
 # --- Image search management
 $ImageSearchRetries = "20"  # Number of tests during the research of an image
-$ImageSearchVerbosity = "2" # Niveau de log de la recherche d'image Log level during the image search
+$ImageSearchVerbosity = "2" # Log level during the image search
 
 Function RunScenario($Chrono)
 { 
