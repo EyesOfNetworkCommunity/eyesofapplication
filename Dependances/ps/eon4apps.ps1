@@ -250,6 +250,7 @@ if(${EonUrl} -ne "TEST") {
 }
 
 # Restore resolution if defined
+if(($ExpectedResolutionX -ne $null) -And ($ExpectedResolutionY -ne $null)) {
     AddValues "INFO" "Restore screen resolution"
     $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
 }
