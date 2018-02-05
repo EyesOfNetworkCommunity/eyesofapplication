@@ -16,6 +16,7 @@ Copy-Item -Path $Path"\Dependances\docs" -Destination $ApxPath -Recurse
 Copy-Item -Path $Path"\Dependances\images" -Destination $ApxPath -Recurse
 Copy-Item -Path $Path"\Dependances\lib" -Destination $ApxPath -Recurse
 Copy-Item -Path $Path"\Dependances\ps" -Destination $ApxPath -Recurse
+Copy-Item -Path $Path"\Dependances\selenium" -Destination $ApxPath -Recurse
 Copy-Item -Path $Path"\Dependances\sshkey" -Destination $ApxPath -Recurse
 Copy-Item -Path $Path"\Dependances\EyesOfApplicationGUI.exe" -Destination $ApxPath
 
