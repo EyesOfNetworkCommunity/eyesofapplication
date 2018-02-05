@@ -366,8 +366,18 @@ function Minimize-All-Windows
 #********************************************************************SELENIUM*****************************************************************
 
 # Load Selenium
-Add-Type -Path "$Path..\selenium\WebDriver.dll"
-$env:PATH += ";$Path..\selenium"
+$PathSelenium="$Path..\selenium"
+$PathSeleniumDriver="$PathSelenium\WebDriver.dll"
+$PathSeleniumSupport="$PathSelenium\WebDriver.Support.dll"
+if(Test-Path $PathSeleniumDriver) {
+    AddValues "INFO" "Loading WebDriver.dll"
+    Add-Type -Path "$PathSeleniumDriver"
+}
+if(Test-Path $PathSeleniumSupport) {
+    AddValues "INFO" "Loading WebDriver.Support.dll"
+    Add-Type -Path "$PathSeleniumSupport"
+}
+$env:PATH += ";$PathSelenium"
 
 # Start WebDriver
 function Start-WebDriver {
@@ -410,4 +420,24 @@ function Stop-WebDriver {
         AddValues "WARNING" 'WebDriver Does Not Appear To Be Running'
     }
     
+}
+
+# Wait for element
+function waitForElement($locator, $timeInSeconds,[switch]$byClass,[switch]$byName){
+    $webDriverWait = New-Object OpenQA.Selenium.Support.UI.WebDriverWait($global:WebDriver, $timeInSeconds)
+    try{
+        if($byClass){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::ClassName($locator)))
+        }
+        elseif($byName){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::Name($locator)))
+        }
+        else{
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::Id($locator)))
+        }
+        return $true
+    }
+    catch{
+        AddValues "ERROR" "Wait for $locator timed out"
+    }
 }
