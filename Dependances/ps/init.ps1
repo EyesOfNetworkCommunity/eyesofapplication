@@ -423,21 +423,85 @@ function Stop-WebDriver {
 }
 
 # Wait for element
-function waitForElement($locator, $timeInSeconds,[switch]$byClass,[switch]$byName){
-    $webDriverWait = New-Object OpenQA.Selenium.Support.UI.WebDriverWait($global:WebDriver, $timeInSeconds)
+function waitForElement($locator, $timeInSeconds,[switch]$byClass,[switch]$byName,[switch]$byXPath,[switch]$byLinkText,[switch]$IsClickable,[switch]$Negate){
+    $timeout = New-TimeSpan -Seconds $timeInSeconds
+    $webDriverWait = New-Object OpenQA.Selenium.Support.UI.WebDriverWait($global:WebDriver, $timeout)
     try{
         if($byClass){
             $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::ClassName($locator)))
+            if($IsClickable) {
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable( [OpenQA.Selenium.by]::ClassName($locator)))    
+            }
         }
         elseif($byName){
             $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::Name($locator)))
+            if($IsClickable) {
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable( [OpenQA.Selenium.by]::Name($locator)))    
+            }
+        }
+        elseif($byXPath){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::XPath($locator)))
+            if($IsClickable) {
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable( [OpenQA.Selenium.by]::XPath($locator)))    
+            }
+        }
+        elseif($byLinkText){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::LinkText($locator)))
+            if($IsClickable) {
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable( [OpenQA.Selenium.by]::LinkText($locator)))    
+            }
         }
         else{
             $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::Id($locator)))
+            if($IsClickable) {
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable( [OpenQA.Selenium.by]::Id($locator)))    
+            }
+        }
+        AddValues "INFO" "$locator found"
+        if($IsClickable) {
+            AddValues "INFO" "$locator clickable"   
         }
         return $true
     }
     catch{
-        AddValues "ERROR" "Wait for $locator timed out"
+        if($Negate) {
+            AddValues "INFO" "$locator not found"    
+        } else {
+            AddValues "ERROR" "Wait for $locator timed out"
+            throw "Wait for $locator timed out"
+        }
+    }
+}
+
+# Wait for element invisible
+function waitForElementInvisible($locator, $timeInSeconds,[switch]$byClass,[switch]$byName,[switch]$byXPath,[switch]$byLinkText,[switch]$Negate){
+    $timeout = New-TimeSpan -Seconds $timeInSeconds
+    $webDriverWait = New-Object OpenQA.Selenium.Support.UI.WebDriverWait($global:WebDriver, $timeout)
+    try{
+        if($byClass){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated( [OpenQA.Selenium.by]::ClassName($locator)))
+        }
+        elseif($byName){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated( [OpenQA.Selenium.by]::Name($locator)))
+        }
+        elseif($byXPath){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated( [OpenQA.Selenium.by]::XPath($locator)))
+        }
+        elseif($byLinkText){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated( [OpenQA.Selenium.by]::LinkText($locator)))
+        }
+        else{
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated( [OpenQA.Selenium.by]::Id($locator)))
+        }
+        AddValues "INFO" "$locator invisible"
+        return $true
+    }
+    catch{
+        if($Negate) {
+            AddValues "INFO" "$locator not invisible"    
+        } else {
+            AddValues "ERROR" "Wait for $locator invisible timed out"
+            throw "Wait for $locator invisible timed out"
+        }
     }
 }
