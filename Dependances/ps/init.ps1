@@ -397,11 +397,11 @@ $PathSeleniumDriver="$PathSelenium\WebDriver.dll"
 $PathSeleniumSupport="$PathSelenium\WebDriver.Support.dll"
 if(Test-Path $PathSeleniumDriver) {
     AddValues "INFO" "Loading WebDriver.dll"
-    Add-Type -Path "$PathSeleniumDriver"
+    [System.Reflection.Assembly]::UnsafeLoadFrom($PathSeleniumDriver)
 }
 if(Test-Path $PathSeleniumSupport) {
     AddValues "INFO" "Loading WebDriver.Support.dll"
-    Add-Type -Path "$PathSeleniumSupport"
+    [System.Reflection.Assembly]::UnsafeLoadFrom($PathSeleniumSupport)
 }
 $env:PATH += ";$PathSelenium"
 
