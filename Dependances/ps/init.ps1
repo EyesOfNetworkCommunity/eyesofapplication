@@ -298,20 +298,48 @@ Function GetCryptedPass
 {
 
     param (
-        [Parameter(Mandatory=$false)][string]$Password
+        [Parameter(Mandatory=$false)][string]$Password,
+        [switch]$UseKey
     )
 
+    # If Password defined create the password file
     if($Password) {
-        $Password | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString | Out-File $PassApp
+        # If UseKey create the key file
+        if($UseKey) {
+            $Key = New-Object Byte[] 32   # You can use 16, 24, or 32 for AES
+            [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($Key)
+            $Key | out-file $PassKey
+            $Password | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString -Key $Key | Out-File $PassApp
+        } else {
+            $Password | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString | Out-File $PassApp
+        }
     }
     
-    $SecurePassword = Get-Content $PassApp | ConvertTo-SecureString
-    $Marshal = [System.Runtime.InteropServices.Marshal]
-    $Bstr = $Marshal::SecureStringToBSTR($SecurePassword)
-    $Password = $Marshal::PtrToStringAuto($Bstr)
-    $Marshal::ZeroFreeBSTR($Bstr)
-
-    return $Password
+    # Check if password file exists
+    if ( ! (Test-Path $PassApp) ) { 
+        AddValues "INFO" "$PassApp not found"
+        throw [System.IO.FileNotFoundException] "PassApp not found"
+    }
+    else {
+        AddValues "INFO" "$PassApp found"
+        
+        # If UseKey check if key file exists and use it
+        if($UseKey) {
+            if ( ! (Test-Path $PassKey) ) { 
+                AddValues "INFO" "$PassKey not found"
+                throw [System.IO.FileNotFoundException] "PassKey not found"
+            }
+            $Key = Get-Content $PassKey
+            $SecurePassword = Get-Content $PassApp | ConvertTo-SecureString -Key $Key
+        } else {
+            $SecurePassword = Get-Content $PassApp | ConvertTo-SecureString
+        }
+        $Marshal = [System.Runtime.InteropServices.Marshal]
+        $Bstr = $Marshal::SecureStringToBSTR($SecurePassword)
+        $Password = $Marshal::PtrToStringAuto($Bstr)
+        $Marshal::ZeroFreeBSTR($Bstr)
+        return $Password
+    }
 }
 
 # Function of image search
@@ -366,7 +394,7 @@ function Minimize-All-Windows
 #********************************************************************SELENIUM*****************************************************************
 
 # Load Selenium
-$PathSelenium="$Path..\selenium"
+$PathSelenium="C:\Axians\EOA\selenium"
 $PathSeleniumDriver="$PathSelenium\WebDriver.dll"
 $PathSeleniumSupport="$PathSelenium\WebDriver.Support.dll"
 if(Test-Path $PathSeleniumDriver) {
@@ -413,8 +441,13 @@ function Stop-WebDriver {
     Param ()
 
     if ($global:WebDriver -is [OpenQA.Selenium.IWebDriver]) {
-        $global:WebDriver.Quit()
-        $global:WebDriver = $null
+        try {
+            AddValues "INFO" "Stopping WebDriver"
+            $global:WebDriver.Quit()
+            $global:WebDriver = $null
+        } catch {
+            AddValues "ERROR" $_.Exception.Message
+        }
     }
     else {
         AddValues "WARNING" 'WebDriver Does Not Appear To Be Running'
@@ -428,33 +461,33 @@ function waitForElement($locator, $timeInSeconds,[switch]$byClass,[switch]$byNam
     $webDriverWait = New-Object OpenQA.Selenium.Support.UI.WebDriverWait($global:WebDriver, $timeout)
     try{
         if($byClass){
-            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::ClassName($locator)))
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible([OpenQA.Selenium.by]::ClassName($locator)))
             if($IsClickable) {
-                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable( [OpenQA.Selenium.by]::ClassName($locator)))    
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable([OpenQA.Selenium.by]::ClassName($locator)))    
             }
         }
         elseif($byName){
-            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::Name($locator)))
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible([OpenQA.Selenium.by]::Name($locator)))
             if($IsClickable) {
-                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable( [OpenQA.Selenium.by]::Name($locator)))    
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable([OpenQA.Selenium.by]::Name($locator)))    
             }
         }
         elseif($byXPath){
-            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::XPath($locator)))
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible([OpenQA.Selenium.by]::XPath($locator)))
             if($IsClickable) {
-                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable( [OpenQA.Selenium.by]::XPath($locator)))    
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable([OpenQA.Selenium.by]::XPath($locator)))    
             }
         }
         elseif($byLinkText){
-            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::LinkText($locator)))
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible([OpenQA.Selenium.by]::LinkText($locator)))
             if($IsClickable) {
-                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable( [OpenQA.Selenium.by]::LinkText($locator)))    
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable([OpenQA.Selenium.by]::LinkText($locator)))    
             }
         }
         else{
-            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible( [OpenQA.Selenium.by]::Id($locator)))
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible([OpenQA.Selenium.by]::Id($locator)))
             if($IsClickable) {
-                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable( [OpenQA.Selenium.by]::Id($locator)))    
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable([OpenQA.Selenium.by]::Id($locator)))    
             }
         }
         AddValues "INFO" "$locator found"
@@ -479,19 +512,19 @@ function waitForElementInvisible($locator, $timeInSeconds,[switch]$byClass,[swit
     $webDriverWait = New-Object OpenQA.Selenium.Support.UI.WebDriverWait($global:WebDriver, $timeout)
     try{
         if($byClass){
-            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated( [OpenQA.Selenium.by]::ClassName($locator)))
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated([OpenQA.Selenium.by]::ClassName($locator)))
         }
         elseif($byName){
-            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated( [OpenQA.Selenium.by]::Name($locator)))
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated([OpenQA.Selenium.by]::Name($locator)))
         }
         elseif($byXPath){
-            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated( [OpenQA.Selenium.by]::XPath($locator)))
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated([OpenQA.Selenium.by]::XPath($locator)))
         }
         elseif($byLinkText){
-            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated( [OpenQA.Selenium.by]::LinkText($locator)))
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated([OpenQA.Selenium.by]::LinkText($locator)))
         }
         else{
-            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated( [OpenQA.Selenium.by]::Id($locator)))
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated([OpenQA.Selenium.by]::Id($locator)))
         }
         AddValues "INFO" "$locator invisible"
         return $true

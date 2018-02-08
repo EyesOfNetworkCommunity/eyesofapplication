@@ -21,7 +21,6 @@ Param(
 if(!$EonServ -or !$EonToken) { throw "Please define EonServ and EonToken" }
 $App_Backup = $App # Workaround bug of Start-Process made by Microsoft
 
-
 # Path grabbing
 $ScriptPath = (Split-Path ((Get-Variable MyInvocation).Value).MyCommand.Path)
 
@@ -29,6 +28,10 @@ $ScriptPath = (Split-Path ((Get-Variable MyInvocation).Value).MyCommand.Path)
 $Init = $ScriptPath + "\init.ps1"
 If (!(Test-Path $Init)){ throw [System.IO.FileNotFoundException] "$Init not found" }
 . $Init
+
+# Create folder
+$RealApp = $App -replace "user_", ""
+$RootPath = $PathApps -replace "\\ps\\", "" -replace "Apps\\", ""
 
 # Log file creation
  $out = & $ScriptPath"\..\bin\GetRunner.exe" 0
@@ -73,18 +76,17 @@ if ( (Test-Path $TempPathAppsLnk) ) {
     $InitApp = $PathApps + $App + ".ps1" -replace "\\ps\\", "\\" 
 }
 
-$PassApp = $ScriptPath + "\..\apps\" + $App + ".pass"
-if ( ! (Test-Path $PassApp) )
-    { 
-        AddValues "INFO" "$PassApp not found"
-        throw [System.IO.FileNotFoundException] "PassApp not found"
-    }
+# Init password file
+$PassApp = $RootPath + "\apps\" + $RealApp + ".pass"
+$PassKey = $RootPath + "\apps\" + $RealApp + ".key"
+AddValues "INFO" "Password file set to $PassApp"
+AddValues "INFO" "Key file set to $PassKey"
 
-if ( ! (Test-Path $InitApp) )
-    { 
-        AddValues "INFO" "$InitApp not found"
-        throw [System.IO.FileNotFoundException] "InitApp not found"
-    }
+# Init app file
+if ( ! (Test-Path $InitApp) ) { 
+    AddValues "INFO" "$InitApp not found"
+    throw [System.IO.FileNotFoundException] "InitApp not found"
+}
 . $InitApp
 AddValues "INFO" "Loading InitApp OK... ($InitApp)"
 
@@ -107,16 +109,13 @@ AddValues "INFO" "Starting prober"
 [system.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") | out-null
 [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point(0,0)
 
-# Create folder and image variable.
-$RealApp = $App -replace "user_", ""
-$RootPath = $PathApps -replace "\\ps\\", "" -replace "Apps\\", ""
-
+# Image folder
 $ImagePathFolder = $RootPath + "\Images\" + $RealApp + "\"
-AddValues "INFO" "ImagePathFolder set to $ImagePathFolder."
+AddValues "INFO" "ImagePathFolder set to $ImagePathFolder"
 New-Item $ImagePathFolder -Type directory -force -value "" |out-null
 Get-ChildItem $ImagePathFolder -Filter *.bmp |foreach { $name = $_.BaseName ; New-Variable -Force -Name "Image_${name}" -Value $_.FullName }
 
-#Purge of processs
+# Purge of processs
 if($PurgeProcess -eq "True") {
 	AddValues "INFO" "Purge of process"
 	PurgeProcess
@@ -209,10 +208,27 @@ Catch {
            AddValues "ERROR" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${GUI_Equipement_InEON}' -service '${App_Backup}' -state '${Status}' -output '${username} on ${Hostname} -> ${Information}'"
         }
     }
-    if(($ExpectedResolutionX -ne $null) -And ($ExpectedResolutionY -ne $null)) { 
+
+    # Restore resolution if defined
+    if(($ExpectedResolutionX -ne $null) -And ($ExpectedResolutionY -ne $null)) {
         AddValues "INFO" "Restore screen resolution"
         $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
     }
+
+    # Stop Selenium driver
+    if($WebMode) {
+        Stop-WebDriver
+    }
+
+    # Purge of process
+    if($PurgeProcess -eq "True") {
+        AddValues "INFO" "Purge of process"
+        PurgeProcess
+    }
+
+    # End of probe
+    AddValues "INFO" "End of probing."
+
     exit 2
 
 }
