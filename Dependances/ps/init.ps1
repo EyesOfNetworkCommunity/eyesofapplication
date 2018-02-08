@@ -392,7 +392,7 @@ function Minimize-All-Windows
 #********************************************************************SELENIUM*****************************************************************
 
 # Load Selenium
-$PathSelenium="C:\Axians\EOA\selenium"
+$PathSelenium="$RealPath\selenium"
 $PathSeleniumDriver="$PathSelenium\WebDriver.dll"
 $PathSeleniumSupport="$PathSelenium\WebDriver.Support.dll"
 if(Test-Path $PathSeleniumDriver) {
