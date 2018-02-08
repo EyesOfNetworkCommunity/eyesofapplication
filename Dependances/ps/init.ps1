@@ -82,7 +82,7 @@ Function Move-Mouse ($AbsoluteX, $AbsoluteY)
         [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($AbsoluteX,$AbsoluteY)
    }
     else {
-        AddValues "WARN" "Absolute position not received ($AbsoluteX,$AbsoluteY)."
+        AddValues "WARN" "Absolute position not received ($AbsoluteX,$AbsoluteY)"
     }
     Start-sleep 1
 }
@@ -128,7 +128,7 @@ Function ImageSearch
 		[int] $green=0
     )
 
-    AddValues "INFO" "(ImageSearch) Looking for image: $Image."
+    AddValues "INFO" "(ImageSearch) Looking for image: $Image"
     If (!(Test-Path $Image)){ throw [System.IO.FileNotFoundException] "ImageSearch: $Image not found" }
 	$ImageFound = 0
     for($i=1;$i -le $ImageSearchRetries;$i++)  {
@@ -317,7 +317,6 @@ Function GetCryptedPass
     
     # Check if password file exists
     if ( ! (Test-Path $PassApp) ) { 
-        AddValues "INFO" "$PassApp not found"
         throw [System.IO.FileNotFoundException] "PassApp not found"
     }
     else {
@@ -326,7 +325,6 @@ Function GetCryptedPass
         # If UseKey check if key file exists and use it
         if($UseKey) {
             if ( ! (Test-Path $PassKey) ) { 
-                AddValues "INFO" "$PassKey not found"
                 throw [System.IO.FileNotFoundException] "PassKey not found"
             }
             $Key = Get-Content $PassKey
@@ -358,12 +356,12 @@ Function SetScreenResolution
     $State = [int]$out.Split('|')[0]
     
     if ($State -ne 0) {
-        throw [System.IO.FileNotFoundException] "The resolution $ResolutionX x $ResolutionY cannot be set on this workstation."
+        throw [System.IO.FileNotFoundException] "The resolution $ResolutionX x $ResolutionY cannot be set on this workstation"
     }
 }
 
-# Function to check if Image is foundable whitout exit.
-# Return 0 if image exist. 1 if image is not foundable.
+# Function to check if Image is foundable whitout exit
+# Return 0 if image exist. 1 if image is not foundable
 Function ImageNotExist
 {
     param (
@@ -373,21 +371,21 @@ Function ImageNotExist
     )
 
     $xy=ImageSearch $ImageToFind $Retries 2 $EonServ 250 1 30
-    AddValues "INFO" "(ImageNotExist) out of image Search."
+    AddValues "INFO" "(ImageNotExist) out of image Search"
     $x = [int]$xy[0]
     $y = [int]$xy[1]
     if (($x -eq -1) -and ($y -eq -1))
     {
         $returncode=$true
-        AddValues "INFO" "(ImageNotExist)Image $ImageToFind not found."
+        AddValues "INFO" "(ImageNotExist)Image $ImageToFind not found"
     } 
-    AddValues "INFO" "(ImageNotExist) Image $ImageToFind was found."
+    AddValues "INFO" "(ImageNotExist) Image $ImageToFind was found"
     return $xy
 }
 
 function Minimize-All-Windows
 {
-    AddValues "INFO" "Minimize all windows."
+    AddValues "INFO" "Minimize all windows"
     & $Path\..\bin\MinimizeAllWindows.exe
 }
 
@@ -500,7 +498,6 @@ function waitForElement($locator, $timeInSeconds,[switch]$byClass,[switch]$byNam
         if($Negate) {
             AddValues "INFO" "$locator not found"    
         } else {
-            AddValues "ERROR" "Wait for $locator timed out"
             throw "Wait for $locator timed out"
         }
     }
@@ -533,7 +530,6 @@ function waitForElementInvisible($locator, $timeInSeconds,[switch]$byClass,[swit
         if($Negate) {
             AddValues "INFO" "$locator not invisible"    
         } else {
-            AddValues "ERROR" "Wait for $locator invisible timed out"
             throw "Wait for $locator invisible timed out"
         }
     }

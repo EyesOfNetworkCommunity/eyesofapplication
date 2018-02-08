@@ -56,9 +56,9 @@ $RootPath = $PathApps -replace "\\ps\\", "" -replace "Apps\\", ""
 
 New-Item $Log -Type file -force -value "" |out-null
 
-# From this point logging is available.
+# From this point logging is available
 AddValues "INFO" "Loading Init.ps1 OK"
-AddValues "INFO" "Current call is: $App $EonServ $EonToken $EonUrl $PurgeProcess."
+AddValues "INFO" "Current call is: $App $EonServ $EonToken $EonUrl $PurgeProcess"
 # Purge
 Get-ChildItem -Path $ScriptPath\..\log\ -Filter *.bmp -Force | Where-Object { $_.CreationTime -lt (Get-Date).AddMinutes(-$PurgeDelay) } | Remove-Item -Force -Recurse
 
@@ -93,7 +93,7 @@ AddValues "INFO" "Loading InitApp OK... ($InitApp)"
 # Determine if User (GUI) or Sched
 $FromGUI = $false
 if ( ($App -match [regex]'^user_')) {
-    AddValues "INFO" "Running from GUI detected."
+    AddValues "INFO" "Running from GUI detected"
     $FromGUI = $true
 }
 AddValues "INFO" "Running scenario: $InitApp"
@@ -115,7 +115,7 @@ AddValues "INFO" "ImagePathFolder set to $ImagePathFolder"
 New-Item $ImagePathFolder -Type directory -force -value "" |out-null
 Get-ChildItem $ImagePathFolder -Filter *.bmp |foreach { $name = $_.BaseName ; New-Variable -Force -Name "Image_${name}" -Value $_.FullName }
 
-# Purge of processs
+# Purge of process
 if($PurgeProcess -eq "True") {
 	AddValues "INFO" "Purge of process"
 	PurgeProcess
@@ -142,7 +142,7 @@ $ExceScriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 AddValues "INFO" "Execution Path is: $ExceScriptPath"
 cd $ExceScriptPath
 
-# # --- Start application and initialize launch chrono.
+# --- Start application and initialize launch chrono
 $cmd = Measure-Command {
 
     AddValues "INFO" "Start of application"
@@ -198,7 +198,7 @@ Catch {
 
     # Send information via NRDP
     if(${EonUrl} -ne "TEST") {
-        AddValues "ERROR" "Send information of error to monitoring system."
+        AddValues "ERROR" "Send information of error to monitoring system"
         if ( $FromGUI -eq $false ) {
  	      $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
 	       AddValues "ERROR" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
@@ -227,7 +227,7 @@ Catch {
     }
 
     # End of probe
-    AddValues "INFO" "End of probing."
+    AddValues "INFO" "End of probing"
 
     exit 2
 
@@ -240,18 +240,18 @@ $PerfData = GetPerfdata $Services $Chrono $BorneInferieure $BorneSuperieure
 if (($PerfData[0] -gt $BorneSuperieure) -or ($PerfData[3] -ne ""))
 {
 	$Status = "CRITICAL"
-    AddValues "WARN" "Sending information of over threhold meseaurement (CRITICAL)."
+    AddValues "WARN" "Sending information of over threhold meseaurement (CRITICAL)"
 }
 elseif (($PerfData[0] -gt $BorneInferieure) -or ($PerfData[2] -ne "")) 
 { 
 	$Status = "WARNING"
-    AddValues "WARN" "Sending information of over threhold meseaurement (WARNING)."
+    AddValues "WARN" "Sending information of over threhold meseaurement (WARNING)"
 }
 # Basic execution
 else
 {
 	$Status = "OK"
-    AddValues "INFO" "Sending information of usual behavior (OK)."
+    AddValues "INFO" "Sending information of usual behavior (OK)"
 }
 	
 # Sending information via NRDP
@@ -288,6 +288,6 @@ if($PurgeProcess -eq "True") {
 }
 
 # End of probe
-AddValues "INFO" "End of probing."
+AddValues "INFO" "End of probing"
 
 exit 0
