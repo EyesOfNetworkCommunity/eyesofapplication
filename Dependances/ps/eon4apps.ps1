@@ -74,6 +74,12 @@ if ( (Test-Path $TempPathAppsLnk) ) {
 }
 
 $PassApp = $ScriptPath + "\..\apps\" + $App + ".pass"
+if ( ! (Test-Path $PassApp) )
+    { 
+        AddValues "INFO" "$PassApp not found"
+        throw [System.IO.FileNotFoundException] "PassApp not found"
+    }
+
 if ( ! (Test-Path $InitApp) )
     { 
         AddValues "INFO" "$InitApp not found"
@@ -157,7 +163,7 @@ $cmd = Measure-Command {
         AddValues "INFO" "Running in web mode..."
         $WebMode=1;
         Start-WebDriver $Navigator
-        $WebDriver.Navigate().GoToUrl($Url);
+        $WebDriver.Navigate().GoToUrl($Url)
     }
 
     # PID for exe execution not for web
