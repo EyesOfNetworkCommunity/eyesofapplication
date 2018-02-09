@@ -422,13 +422,22 @@ function Start-WebDriver {
 
     switch ($Browser) {
         'chrome'  {
-            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.Chrome.ChromeDriver
+            $chrome_options = New-Object -TypeName OpenQA.Selenium.Chrome.ChromeOptions
+            $chrome_options.AcceptInsecureCertificates=$AcceptInsecureCertificates
+            $chrome_options.AddArgument("--start-maximized")
+            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.Chrome.ChromeDriver -ArgumentList $chrome_options
         }
         'ie' {
-            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.IE.InternetExplorerDriver
+            $ie_options = New-Object -TypeName OpenQA.Selenium.IE.InternetExplorerOptions
+            $ie_options.AcceptInsecureCertificates=$AcceptInsecureCertificates
+            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.IE.InternetExplorerDriver -ArgumentList $ie_options
+            $global:WebDriver.Manage().Window.maximize()
         }
         'firefox' {
-            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.Firefox.FirefoxDriver
+            $ff_options = New-Object -TypeName OpenQA.Selenium.Firefox.FirefoxOptions
+            $ff_options.AcceptInsecureCertificates = $AcceptInsecureCertificates
+            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.Firefox.FirefoxDriver -ArgumentList $ff_options
+            $global:WebDriver.Manage().Window.maximize()
         }
     }
 }

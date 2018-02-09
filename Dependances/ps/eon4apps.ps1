@@ -162,6 +162,7 @@ $cmd = Measure-Command {
         AddValues "INFO" "Running in web mode..."
         $WebMode=1;
         Start-WebDriver $Navigator
+        $WebDriver.Manage().Timeouts().ImplicitWait=New-TimeSpan -Seconds 5
         $WebDriver.Navigate().GoToUrl($Url)
     }
 
@@ -197,7 +198,7 @@ Catch {
     AddValues "ERROR" $Information
 
     # Send information via NRDP
-    if(${EonUrl} -ne "TEST") {
+    if(${EonUrl} -ne "False") {
         AddValues "ERROR" "Send information of error to monitoring system"
         if ( $FromGUI -eq $false ) {
  	      $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
@@ -259,7 +260,7 @@ $Information = $Status + " : " + $Service + " " + $PerfData[0] + "s"
 if($PerfData[2] -ne "") { $Information = $Information + " " + $PerfData[2] }
 if($PerfData[3] -ne "") { $Information = $Information + " " + $PerfData[3] }
 $Information = $Information + $PerfData[1]
-if(${EonUrl} -ne "TEST") {
+if(${EonUrl} -ne "False") {
     if ( $FromGUI -eq $false ) {
         $Send_Trap = &  powershell -ExecutionPolicy ByPass -File  ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
         AddValues "INFO" "powershell -ExecutionPolicy ByPass -File ${Path}ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
