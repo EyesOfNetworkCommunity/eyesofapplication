@@ -113,6 +113,20 @@ Function PurgeProcess
     start-sleep 2
 }
 
+#Function to kill process
+Function KillProcess
+{  
+    param (
+        [string] $ProcessName
+    )
+    AddValues "INFO" "(KillProcess) Looking for process: $ProcessName."
+    Clear-Host
+    $process = Get-Process -ErrorAction SilentlyContinue -processname $ProcessName
+    if ( $process ) {
+        $process.Kill()
+    }
+}
+
 # Function to search image
 Function ImageSearch
 {
