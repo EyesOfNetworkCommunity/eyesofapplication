@@ -3,7 +3,7 @@
 Dans cette documentation, nous verrons comment installer EOA ainsi que son utilisation sur Windows.
 
 
-## Partie 1 – Installation
+## Installation
 
 ### Pré-requis
 
@@ -50,7 +50,7 @@ Dans l’exemple, le poste a la version 32 bits de Firefox d’installé.
 
 ![Screenshot](Dependances/docs/DocImg/cscr7.png)
 
-## Partie 2 – Configuration SSH
+## Configuration SSH
 
 Le programme utilise une connexion SSH via une paire de clés.<br/>
 Il vous faut créer cette paire de clés, pour ce faire rendez-vous sur votre serveur EON.
@@ -72,7 +72,7 @@ Il vous faut créer cette paire de clés, pour ce faire rendez-vous sur votre se
 
 ![Screenshot](Dependances/docs/DocImg/cscr11.png)
 
-## Partie 3 – Configuration d’Eyes Of Network
+## Configuration d’Eyes Of Network
 
 Maintenant, il faut configurer EON pour qu’il récupère les informations venant d’EOA.
 
@@ -92,7 +92,7 @@ Maintenant, il faut configurer EON pour qu’il récupère les informations vena
 
 Ces services récupèrerons les informations qu’enverra EOA à EON, ce sont des services passifs.
 
-## Partie 4 – Utilisation et Tests
+## Utilisation et Tests
 
 Maintenant que la configuration est terminée, passons à l’utilisations d’EOA. EOA Simule un utilisateur, le script fait une recherche d’image puis clique et si elle ne la trouve pas, l’envoie à EON. Rendez-vous sur votre poste Windows.
 
