@@ -1,17 +1,26 @@
-# Documentation – Installation et utilisation de Eyes of Application – Windows
+# Installation et Utilisation de Eyes of Application
 
 Dans cette documentation, nous verrons comment installer EOA ainsi que son utilisation sur Windows.
 
+
 ## Partie 1 – Installation
 
-* Récupérez EOA sur GitHub via le lien suivant : https://github.com/EyesOfNetworkCommunity/eyesofapplication/
-* Extrayez le dossier téléchargé. Pour lancer l’installation il vous faudra tout d’abord signer le setup.bat.
- * Pour ce faire, faites un clic-droit sur setup.bat, allez dans Propriété.
- * Cochez la case Débloquer pour que Windows vous autorise l’utilisation du script, ceci est une sécurité de Windows pour prévenir du lancement de script malveillant.
+### Pré-requis
+
+EOA a besoin des paquets "Redistribuable Visual C++ pour Visual Studio 2015" pour fonctionner correctement.
+
+Téléchargez et installez les applications `vc_redist.x64.exe` et `vc_redist.x86.exe`, disponibles sur le site officiel Microsoft [ici](https://www.microsoft.com/fr-fr/download/details.aspx?id=48145).
+
+### EOA
+
+* Récupérez EOA sur GitHub via le lien [suivant](https://github.com/EyesOfNetworkCommunity/eyesofapplication/archive/master.zip).
+* Extrayez le dossier téléchargé. Pour lancer l’installation il vous faudra tout d’abord signer le `setup.bat`.
+ * Pour ce faire, faites un clic-droit sur `setup.bat`, allez dans `Propriété`.
+ * Cochez la case "Débloquer pour que Windows vous autorise l’utilisation du script, ceci est une sécurité de Windows pour prévenir du lancement de script malveillant".
 
 ![Screenshot](Dependances/docs/DocImg/cscr1.png)
 
-* Lancez ensuite le fichier setup.bat.
+* Lancez ensuite le fichier `setup.bat`.
 * Renseignez les informations demandées selon vos critères :
 
 ![Screenshot](Dependances/docs/DocImg/cscr2.png)
@@ -21,7 +30,7 @@ Vous avez à présent un nouveau dossier à la racine de votre disque.
 
 ![Screenshot](Dependances/docs/DocImg/cscr4.png)
 
-* Dirigez-vous vers ce dossier, puis dans Apps. Ouvrez www.eyesofnewtork.fr.ps1 dans Notepad++. Modifiez les éléments suivants en fonction de votre configuration :
+* Dirigez-vous vers ce dossier, puis dans Apps. Ouvrez `www.eyesofnewtork.fr.ps1` dans un éditeur de texte (Notepad++, Visual Studio Code, etc). Modifiez les éléments suivants en fonction de votre configuration :
 
 ![Screenshot](Dependances/docs/DocImg/cscr5.png)
 
