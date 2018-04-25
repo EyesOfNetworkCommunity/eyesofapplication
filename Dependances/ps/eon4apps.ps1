@@ -21,7 +21,6 @@ Param(
 if(!$EonServ -or !$EonToken) { throw "Please define EonServ and EonToken" }
 $App_Backup = $App # Workaround bug of Start-Process made by Microsoft
 
-
 # Path grabbing
 $ScriptPath = (Split-Path ((Get-Variable MyInvocation).Value).MyCommand.Path)
 
@@ -29,6 +28,10 @@ $ScriptPath = (Split-Path ((Get-Variable MyInvocation).Value).MyCommand.Path)
 $Init = $ScriptPath + "\init.ps1"
 If (!(Test-Path $Init)){ throw [System.IO.FileNotFoundException] "$Init not found" }
 . $Init
+
+# Create folder
+$RealApp = $App -replace "user_", ""
+$RootPath = $PathApps -replace "\\ps\\", "" -replace "Apps\\", ""
 
 # Log file creation
  $out = & $ScriptPath"\..\bin\GetRunner.exe" 0
@@ -53,9 +56,9 @@ If (!(Test-Path $Init)){ throw [System.IO.FileNotFoundException] "$Init not foun
 
 New-Item $Log -Type file -force -value "" |out-null
 
-# From this point logging is available.
+# From this point logging is available
 AddValues "INFO" "Loading Init.ps1 OK"
-AddValues "INFO" "Current call is: $App $EonServ $EonToken $EonUrl $PurgeProcess."
+AddValues "INFO" "Current call is: $App $EonServ $EonToken $EonUrl $PurgeProcess"
 # Purge
 Get-ChildItem -Path $ScriptPath\..\log\ -Filter *.bmp -Force | Where-Object { $_.CreationTime -lt (Get-Date).AddMinutes(-$PurgeDelay) } | Remove-Item -Force -Recurse
 
@@ -73,19 +76,24 @@ if ( (Test-Path $TempPathAppsLnk) ) {
     $InitApp = $PathApps + $App + ".ps1" -replace "\\ps\\", "\\" 
 }
 
-$PassApp = $ScriptPath + "\..\apps\" + $App + ".pass"
-if ( ! (Test-Path $InitApp) )
-    { 
-        AddValues "INFO" "$InitApp not found"
-        throw [System.IO.FileNotFoundException] "InitApp not found"
-    }
+# Init password file
+$PassApp = $RootPath + "\apps\" + $RealApp + ".pass"
+$PassKey = $RootPath + "\apps\" + $RealApp + ".key"
+AddValues "INFO" "Password file set to $PassApp"
+AddValues "INFO" "Key file set to $PassKey"
+
+# Init app file
+if ( ! (Test-Path $InitApp) ) { 
+    AddValues "INFO" "$InitApp not found"
+    throw [System.IO.FileNotFoundException] "InitApp not found"
+}
 . $InitApp
 AddValues "INFO" "Loading InitApp OK... ($InitApp)"
 
 # Determine if User (GUI) or Sched
 $FromGUI = $false
 if ( ($App -match [regex]'^user_')) {
-    AddValues "INFO" "Running from GUI detected."
+    AddValues "INFO" "Running from GUI detected"
     $FromGUI = $true
 }
 AddValues "INFO" "Running scenario: $InitApp"
@@ -101,16 +109,13 @@ AddValues "INFO" "Starting prober"
 [system.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") | out-null
 [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point(0,0)
 
-# Create folder and image variable.
-$RealApp = $App -replace "user_", ""
-$RootPath = $PathApps -replace "\\ps\\", "" -replace "Apps\\", ""
-
+# Image folder
 $ImagePathFolder = $RootPath + "\Images\" + $RealApp + "\"
-AddValues "INFO" "ImagePathFolder set to $ImagePathFolder."
+AddValues "INFO" "ImagePathFolder set to $ImagePathFolder"
 New-Item $ImagePathFolder -Type directory -force -value "" |out-null
 Get-ChildItem $ImagePathFolder -Filter *.bmp |foreach { $name = $_.BaseName ; New-Variable -Force -Name "Image_${name}" -Value $_.FullName }
 
-#Purge of processs
+# Purge of process
 if($PurgeProcess -eq "True") {
 	AddValues "INFO" "Purge of process"
 	PurgeProcess
@@ -125,15 +130,19 @@ Foreach($svc in $Services) {
     $BorneSuperieure +=  $Current_BorneSuperieur
     AddValues "INFO" "Adding counter ($Current_Service) Warning:$Current_BorneInferieur, Critical:$Current_BorneSuperieur"
 }
-AddValues "INFO" "Screen resolution adjustment to ${ExpectedResolutionX}x${ExpectedResolutionY}"
-SetScreenResolution $ExpectedResolutionX $ExpectedResolutionY
+
+# Set resolution if defined
+if(($ExpectedResolutionX -ne $null) -And ($ExpectedResolutionY -ne $null)) { 
+    AddValues "INFO" "Screen resolution adjustment to ${ExpectedResolutionX}x${ExpectedResolutionY}"
+    SetScreenResolution $ExpectedResolutionX $ExpectedResolutionY
+}
 
 # Do not remove. This cd is used to relative path access...
 $ExceScriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 AddValues "INFO" "Execution Path is: $ExceScriptPath"
 cd $ExceScriptPath
 
-# # --- Start application and initialize launch chrono.
+# --- Start application and initialize launch chrono
 $cmd = Measure-Command {
 
     AddValues "INFO" "Start of application"
@@ -149,27 +158,25 @@ $cmd = Measure-Command {
         AddValues "INFO" "Run: $ProgExe"
     }
     # Web
-    else { 
-        $ie = New-Object -COMObject InternetExplorer.Application
-        $ie.visible = $true
-        $ie.fullscreen = $true
-        $ie.Navigate($Url)
-        while ($ie.Busy -eq $true) { start-sleep 1; }
-        $app = Get-Process -Name iexplore | Where-Object {$_.MainWindowHandle -eq $ie.HWND}
-		$MyPID = Get-Process -Name iexplore | Where-Object {$_.MainWindowHandle -eq $ie.HWND} | Select-Object -ExpandProperty "Id"
+    else {
         AddValues "INFO" "Running in web mode..."
+        $WebMode=1;
+        Start-WebDriver $Navigator
+        $WebDriver.Manage().Timeouts().ImplicitWait=New-TimeSpan -Seconds 5
+        $WebDriver.Navigate().GoToUrl($Url)
     }
 
-    # Set application windows on top. 
-    start-sleep -s 5 #Waiting for fù(£1n9 windows process handler...
-    if(!$ie) {
+    # PID for exe execution not for web
+    if(!$WebMode) {
+        # Set application windows on top. 
+        start-sleep -s 5 #Waiting for fù(£1n9 windows process handler...
         $Command_Line_Str="%$ProgExe $ProgArg%" -replace ' ', "%" -replace '\\', '\\'
         AddValues "INFO" "Selectable CommandLine (${Command_Line_Str})"
         $MyTablePID = foreach ($i in "${Command_Line_Str}") {Get-WmiObject Win32_Process -Filter "CommandLine like '$i'" | Select ProcessId}
-        $MyPID = $MyTablePID.ProcessId  
+        $MyPID = $MyTablePID.ProcessId
+        AddValues "INFO" "Ask for PID ---> $MyPID"
+        Set-Active-Maximized $MyPID
     }
-    AddValues "INFO" "Ask for PID ---> $MyPID"
-    Set-Active-Maximized $MyPID
 }
 $Current_Chrono += [math]::Round($cmd.TotalSeconds,6)
 $Chrono += $Current_Chrono
@@ -191,17 +198,38 @@ Catch {
     AddValues "ERROR" $Information
 
     # Send information via NRDP
-    AddValues "ERROR" "Send information of error to monitoring system."
-    if ( $FromGUI -eq $false ) {
- 	  $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
-	   AddValues "ERROR" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
-	}
-    if ( $FromGUI -eq $true ) {
-       $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${GUI_Equipement_InEON}" -service "${App_Backup}" -state "${Status}" -output "${username} on ${Hostname} -> ${Information}"
-       AddValues "ERROR" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${GUI_Equipement_InEON}' -service '${App_Backup}' -state '${Status}' -output '${username} on ${Hostname} -> ${Information}'"
+    if(${EonUrl} -ne "False") {
+        AddValues "ERROR" "Send information of error to monitoring system"
+        if ( $FromGUI -eq $false ) {
+ 	      $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
+	       AddValues "ERROR" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
+	    }
+        if ( $FromGUI -eq $true ) {
+           $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${GUI_Equipement_InEON}" -service "${App_Backup}" -state "${Status}" -output "${username} on ${Hostname} -> ${Information}"
+           AddValues "ERROR" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${GUI_Equipement_InEON}' -service '${App_Backup}' -state '${Status}' -output '${username} on ${Hostname} -> ${Information}'"
+        }
     }
-    AddValues "INFO" "Restore screen resolution"
-    $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
+
+    # Restore resolution if defined
+    if(($ExpectedResolutionX -ne $null) -And ($ExpectedResolutionY -ne $null)) {
+        AddValues "INFO" "Restore screen resolution"
+        $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
+    }
+
+    # Stop Selenium driver
+    if($WebMode) {
+        Stop-WebDriver
+    }
+
+    # Purge of process
+    if($PurgeProcess -eq "True") {
+        AddValues "INFO" "Purge of process"
+        PurgeProcess
+    }
+
+    # End of probe
+    AddValues "INFO" "End of probing"
+
     exit 2
 
 }
@@ -213,18 +241,18 @@ $PerfData = GetPerfdata $Services $Chrono $BorneInferieure $BorneSuperieure
 if (($PerfData[0] -gt $BorneSuperieure) -or ($PerfData[3] -ne ""))
 {
 	$Status = "CRITICAL"
-    AddValues "WARN" "Sending information of over threhold meseaurement (CRITICAL)."
+    AddValues "WARN" "Sending information of over threhold meseaurement (CRITICAL)"
 }
 elseif (($PerfData[0] -gt $BorneInferieure) -or ($PerfData[2] -ne "")) 
 { 
 	$Status = "WARNING"
-    AddValues "WARN" "Sending information of over threhold meseaurement (WARNING)."
+    AddValues "WARN" "Sending information of over threhold meseaurement (WARNING)"
 }
 # Basic execution
 else
 {
 	$Status = "OK"
-    AddValues "INFO" "Sending information of usual behavior (OK)."
+    AddValues "INFO" "Sending information of usual behavior (OK)"
 }
 	
 # Sending information via NRDP
@@ -232,26 +260,35 @@ $Information = $Status + " : " + $Service + " " + $PerfData[0] + "s"
 if($PerfData[2] -ne "") { $Information = $Information + " " + $PerfData[2] }
 if($PerfData[3] -ne "") { $Information = $Information + " " + $PerfData[3] }
 $Information = $Information + $PerfData[1]
-AddValues "INFO" $Information
-if ( $FromGUI -eq $false ) {
-    $Send_Trap = &  powershell -ExecutionPolicy ByPass -File  ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
-    AddValues "INFO" "powershell -ExecutionPolicy ByPass -File ${Path}ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
-}
-if ( $FromGUI -eq $true ) {
-    $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${GUI_Equipement_InEON}" -service "${App_Backup}" -state "${Status}" -output "${username} on ${computer} -> ${Information}"
-    AddValues "INFO" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${GUI_Equipement_InEON}' -service '${App_Backup}' -state '${Status}' -output '${username} on ${computer} -> ${Information}'"
+if(${EonUrl} -ne "False") {
+    if ( $FromGUI -eq $false ) {
+        $Send_Trap = &  powershell -ExecutionPolicy ByPass -File  ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${Hostname}" -service "${Service}" -state "${Status}" -output "${Information}"
+        AddValues "INFO" "powershell -ExecutionPolicy ByPass -File ${Path}ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${Hostname}' -service '${Service}' -state '${Status}' -output '${Information}'"
+    }
+    if ( $FromGUI -eq $true ) {
+        $Send_Trap = & powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url "${EonUrl}" -token "${EonToken}" -hostname "${GUI_Equipement_InEON}" -service "${App_Backup}" -state "${Status}" -output "${username} on ${computer} -> ${Information}"
+        AddValues "INFO" "powershell -ExecutionPolicy ByPass -File ${Path}\ps_nrdp.ps1 -url '${EonUrl}' -token '${EonToken}' -hostname '${GUI_Equipement_InEON}' -service '${App_Backup}' -state '${Status}' -output '${username} on ${computer} -> ${Information}'"
+    }
 }
 
-AddValues "INFO" "Restore screen resolution"
-$out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
+# Restore resolution if defined
+if(($ExpectedResolutionX -ne $null) -And ($ExpectedResolutionY -ne $null)) {
+    AddValues "INFO" "Restore screen resolution"
+    $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
+}
 
-# # Purge of process
+# Stop Selenium driver
+if($WebMode) {
+    Stop-WebDriver
+}
+
+# Purge of process
 if($PurgeProcess -eq "True") {
     AddValues "INFO" "Purge of process"
     PurgeProcess
 }
 
 # End of probe
-AddValues "INFO" "End of probing."
+AddValues "INFO" "End of probing"
 
 exit 0

@@ -82,7 +82,7 @@ Function Move-Mouse ($AbsoluteX, $AbsoluteY)
         [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($AbsoluteX,$AbsoluteY)
    }
     else {
-        AddValues "WARN" "Absolute position not received ($AbsoluteX,$AbsoluteY)."
+        AddValues "WARN" "Absolute position not received ($AbsoluteX,$AbsoluteY)"
     }
     Start-sleep 1
 }
@@ -128,7 +128,7 @@ Function ImageSearch
 		[int] $green=0
     )
 
-    AddValues "INFO" "(ImageSearch) Looking for image: $Image."
+    AddValues "INFO" "(ImageSearch) Looking for image: $Image"
     If (!(Test-Path $Image)){ throw [System.IO.FileNotFoundException] "ImageSearch: $Image not found" }
 	$ImageFound = 0
     for($i=1;$i -le $ImageSearchRetries;$i++)  {
@@ -178,8 +178,10 @@ Function ImageSearch
             $PathKey = $Path -replace "\\ps\\", "\sshkey"
 			AddValues "ERROR" "Send the file: ${Path}\..\bin\pscp.exe -i ${Path}..\sshkey\id_dsa -l eon4apps $ScrShot ${EonSrv}:/srv/eyesofnetwork/eon4apps/html/"
 			$SendFile = & ${Path}\..\bin\pscp.exe -i ${PathKey}\id_dsa -l eon4apps $ScrShot "${EonSrv}:/srv/eyesofnetwork/eon4apps/html/"
-            $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
-			$ConcatUrlSend = $Image + ' not found in screen: <a href="/eon4apps/' + $BaseFileName + $BaseFileNameExt + '" target="_blank">' + $ScrShot + '</a>'
+            if(($ExpectedResolutionX -ne $null) -And ($ExpectedResolutionY -ne $null)) { 
+                $out = & ${Path}\..\bin\SetScreenSetting.exe 0 0 0 #Restore good known screen configuration
+			}
+            $ConcatUrlSend = $Image + ' not found in screen: <a href="/eon4apps/' + $BaseFileName + $BaseFileNameExt + '" target="_blank">' + $ScrShot + '</a>'
 			throw [System.IO.FileNotFoundException] "$ConcatUrlSend"
 		}
 	}
@@ -296,20 +298,46 @@ Function GetCryptedPass
 {
 
     param (
-        [Parameter(Mandatory=$false)][string]$Password
+        [Parameter(Mandatory=$false)][string]$Password,
+        [switch]$UseKey
     )
 
+    # If Password defined create the password file
     if($Password) {
-        $Password | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString | Out-File $PassApp
+        # If UseKey create the key file
+        if($UseKey) {
+            $Key = New-Object Byte[] 32   # You can use 16, 24, or 32 for AES
+            [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($Key)
+            $Key | out-file $PassKey
+            $Password | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString -Key $Key | Out-File $PassApp
+        } else {
+            $Password | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString | Out-File $PassApp
+        }
     }
     
-    $SecurePassword = Get-Content $PassApp | ConvertTo-SecureString
-    $Marshal = [System.Runtime.InteropServices.Marshal]
-    $Bstr = $Marshal::SecureStringToBSTR($SecurePassword)
-    $Password = $Marshal::PtrToStringAuto($Bstr)
-    $Marshal::ZeroFreeBSTR($Bstr)
-
-    return $Password
+    # Check if password file exists
+    if ( ! (Test-Path $PassApp) ) { 
+        throw [System.IO.FileNotFoundException] "PassApp not found"
+    }
+    else {
+        AddValues "INFO" "$PassApp found"
+        
+        # If UseKey check if key file exists and use it
+        if($UseKey) {
+            if ( ! (Test-Path $PassKey) ) { 
+                throw [System.IO.FileNotFoundException] "PassKey not found"
+            }
+            $Key = Get-Content $PassKey
+            $SecurePassword = Get-Content $PassApp | ConvertTo-SecureString -Key $Key
+        } else {
+            $SecurePassword = Get-Content $PassApp | ConvertTo-SecureString
+        }
+        $Marshal = [System.Runtime.InteropServices.Marshal]
+        $Bstr = $Marshal::SecureStringToBSTR($SecurePassword)
+        $Password = $Marshal::PtrToStringAuto($Bstr)
+        $Marshal::ZeroFreeBSTR($Bstr)
+        return $Password
+    }
 }
 
 # Function of image search
@@ -328,12 +356,12 @@ Function SetScreenResolution
     $State = [int]$out.Split('|')[0]
     
     if ($State -ne 0) {
-        throw [System.IO.FileNotFoundException] "The resolution $ResolutionX x $ResolutionY cannot be set on this workstation."
+        throw [System.IO.FileNotFoundException] "The resolution $ResolutionX x $ResolutionY cannot be set on this workstation"
     }
 }
 
-# Function to check if Image is foundable whitout exit.
-# Return 0 if image exist. 1 if image is not foundable.
+# Function to check if Image is foundable whitout exit
+# Return 0 if image exist. 1 if image is not foundable
 Function ImageNotExist
 {
     param (
@@ -343,20 +371,175 @@ Function ImageNotExist
     )
 
     $xy=ImageSearch $ImageToFind $Retries 2 $EonServ 250 1 30
-    AddValues "INFO" "(ImageNotExist) out of image Search."
+    AddValues "INFO" "(ImageNotExist) out of image Search"
     $x = [int]$xy[0]
     $y = [int]$xy[1]
     if (($x -eq -1) -and ($y -eq -1))
     {
         $returncode=$true
-        AddValues "INFO" "(ImageNotExist)Image $ImageToFind not found."
+        AddValues "INFO" "(ImageNotExist)Image $ImageToFind not found"
     } 
-    AddValues "INFO" "(ImageNotExist) Image $ImageToFind was found."
+    AddValues "INFO" "(ImageNotExist) Image $ImageToFind was found"
     return $xy
 }
 
 function Minimize-All-Windows
 {
-    AddValues "INFO" "Minimize all windows."
+    AddValues "INFO" "Minimize all windows"
     & $Path\..\bin\MinimizeAllWindows.exe
+}
+
+#********************************************************************SELENIUM*****************************************************************
+
+# Load Selenium
+$PathSelenium="$Path..\selenium"
+$PathSeleniumDriver="$PathSelenium\WebDriver.dll"
+$PathSeleniumSupport="$PathSelenium\WebDriver.Support.dll"
+if(Test-Path $PathSeleniumDriver) {
+    AddValues "INFO" "Loading WebDriver.dll"
+    [System.Reflection.Assembly]::UnsafeLoadFrom($PathSeleniumDriver)
+}
+if(Test-Path $PathSeleniumSupport) {
+    AddValues "INFO" "Loading WebDriver.Support.dll"
+    [System.Reflection.Assembly]::UnsafeLoadFrom($PathSeleniumSupport)
+}
+$env:PATH += ";$PathSelenium"
+
+# Start WebDriver
+function Start-WebDriver {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory)]
+        [ValidateSet('Chrome','IE','Firefox')]
+        [String]
+        $Browser
+    )
+
+    if ($global:WebDriver -is [OpenQA.Selenium.IWebDriver]) {
+        AddValues "WARNING" "WebDriver Seems To Already Be Started. Call Stop-WebDriver First Before Starting a New WebDriver Session"
+        Stop-WebDriver
+    }
+
+    switch ($Browser) {
+        'chrome'  {
+            $chrome_options = New-Object -TypeName OpenQA.Selenium.Chrome.ChromeOptions
+            $chrome_options.AcceptInsecureCertificates=$AcceptInsecureCertificates
+            $chrome_options.AddArgument("--start-maximized")
+            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.Chrome.ChromeDriver -ArgumentList $chrome_options
+        }
+        'ie' {
+            $ie_options = New-Object -TypeName OpenQA.Selenium.IE.InternetExplorerOptions
+            $ie_options.AcceptInsecureCertificates=$AcceptInsecureCertificates
+            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.IE.InternetExplorerDriver -ArgumentList $ie_options
+            $global:WebDriver.Manage().Window.maximize()
+        }
+        'firefox' {
+            $ff_options = New-Object -TypeName OpenQA.Selenium.Firefox.FirefoxOptions
+            $ff_options.AcceptInsecureCertificates = $AcceptInsecureCertificates
+            $global:WebDriver = New-Object -TypeName OpenQA.Selenium.Firefox.FirefoxDriver -ArgumentList $ff_options
+            $global:WebDriver.Manage().Window.maximize()
+        }
+    }
+}
+
+# Stop WebDriver
+function Stop-WebDriver {
+    [CmdletBinding()]
+    Param ()
+
+    if ($global:WebDriver -is [OpenQA.Selenium.IWebDriver]) {
+        try {
+            AddValues "INFO" "Stopping WebDriver"
+            $global:WebDriver.Quit()
+            $global:WebDriver = $null
+        } catch {
+            AddValues "ERROR" $_.Exception.Message
+        }
+    }
+    else {
+        AddValues "WARNING" 'WebDriver Does Not Appear To Be Running'
+    }
+    
+}
+
+# Wait for element
+function waitForElement($locator, $timeInSeconds,[switch]$byClass,[switch]$byName,[switch]$byXPath,[switch]$byLinkText,[switch]$IsClickable,[switch]$Negate){
+    $timeout = New-TimeSpan -Seconds $timeInSeconds
+    $webDriverWait = New-Object OpenQA.Selenium.Support.UI.WebDriverWait($global:WebDriver, $timeout)
+    try{
+        if($byClass){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible([OpenQA.Selenium.by]::ClassName($locator)))
+            if($IsClickable) {
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable([OpenQA.Selenium.by]::ClassName($locator)))    
+            }
+        }
+        elseif($byName){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible([OpenQA.Selenium.by]::Name($locator)))
+            if($IsClickable) {
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable([OpenQA.Selenium.by]::Name($locator)))    
+            }
+        }
+        elseif($byXPath){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible([OpenQA.Selenium.by]::XPath($locator)))
+            if($IsClickable) {
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable([OpenQA.Selenium.by]::XPath($locator)))    
+            }
+        }
+        elseif($byLinkText){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible([OpenQA.Selenium.by]::LinkText($locator)))
+            if($IsClickable) {
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable([OpenQA.Selenium.by]::LinkText($locator)))    
+            }
+        }
+        else{
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementIsVisible([OpenQA.Selenium.by]::Id($locator)))
+            if($IsClickable) {
+                $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementToBeClickable([OpenQA.Selenium.by]::Id($locator)))    
+            }
+        }
+        AddValues "INFO" "$locator found"
+        if($IsClickable) {
+            AddValues "INFO" "$locator clickable"   
+        }
+        return $true
+    }
+    catch{
+        if($Negate) {
+            AddValues "INFO" "$locator not found"    
+        } else {
+            throw "Wait for $locator timed out"
+        }
+    }
+}
+
+# Wait for element invisible
+function waitForElementInvisible($locator, $timeInSeconds,[switch]$byClass,[switch]$byName,[switch]$byXPath,[switch]$byLinkText,[switch]$Negate){
+    $timeout = New-TimeSpan -Seconds $timeInSeconds
+    $webDriverWait = New-Object OpenQA.Selenium.Support.UI.WebDriverWait($global:WebDriver, $timeout)
+    try{
+        if($byClass){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated([OpenQA.Selenium.by]::ClassName($locator)))
+        }
+        elseif($byName){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated([OpenQA.Selenium.by]::Name($locator)))
+        }
+        elseif($byXPath){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated([OpenQA.Selenium.by]::XPath($locator)))
+        }
+        elseif($byLinkText){
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated([OpenQA.Selenium.by]::LinkText($locator)))
+        }
+        else{
+            $null = $webDriverWait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::invisibilityOfElementLocated([OpenQA.Selenium.by]::Id($locator)))
+        }
+        AddValues "INFO" "$locator invisible"
+        return $true
+    }
+    catch{
+        if($Negate) {
+            AddValues "INFO" "$locator not invisible"    
+        } else {
+            throw "Wait for $locator invisible timed out"
+        }
+    }
 }
