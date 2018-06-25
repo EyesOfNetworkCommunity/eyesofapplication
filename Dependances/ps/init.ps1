@@ -409,7 +409,7 @@ $env:PATH += ";$PathSelenium"
 function Start-WebDriver {
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory=$true)]
         [ValidateSet('Chrome','IE','Firefox')]
         [String]
         $Browser
