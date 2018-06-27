@@ -67,10 +67,13 @@ Function Send-SpecialKeys
     Start-sleep 1
 }
 
-Function Send-Keys
+Function Send-Keys ($KeysToPress, $Timing)
 {
-    param([string] $KeysToPress)
-    & $Path\..\bin\EON-Keyboard.exe -s $KeysToPress
+    if([int]$Timing) {
+        & $Path\..\bin\EON-Keyboard.exe -T $Timing -s $KeysToPress
+    } else {
+        & $Path\..\bin\EON-Keyboard.exe -s $KeysToPress
+    }
     Start-sleep 1
 }
 
