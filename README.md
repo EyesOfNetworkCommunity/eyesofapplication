@@ -81,11 +81,21 @@ Maintenant, il faut configurer EON pour qu’il récupère les informations vena
 
 ![Screenshot](Dependances/docs/DocImg/cscr12.png)
 
+* Si le service template "GENERIC_PASSIVE" n'est pas présent sur votre serveur EON, il faut le créer en dupliquant le service template GENERIC_SERVICE, puis en apportant les modifications suivantes :
+
+  * sur l'onglet "General", renommer le service et sa description :
+    ![Screenshot](Dependances/docs/DocImg/passv3.png)
+
+  * Désactiver l'option "Active Checks" ![Screenshot](Dependances/docs/DocImg/passv4.png)
+  * Passer l'option "Freshness threshold" à 1200 ![Screenshot](Dependances/docs/DocImg/passv4.png)
+
 * Rajoutez l’hôte :
 
 ![Screenshot](Dependances/docs/DocImg/cscr13.png)
 
 * Créez ensuite les services suivants, et configurez-les comme suit :
+
+Votre service doit heriter du template de service "GENERIC_PASSIVE"
 
 ![Screenshot](Dependances/docs/DocImg/cscr14.png)
 ![Screenshot](Dependances/docs/DocImg/cscr15.png)
