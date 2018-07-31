@@ -77,10 +77,7 @@ if ( (Test-Path $TempPathAppsLnk) ) {
 }
 
 # Init password file
-$PassApp = $RootPath + "\apps\" + $RealApp + ".pass"
-$PassKey = $RootPath + "\apps\" + $RealApp + ".key"
-AddValues "INFO" "Password file set to $PassApp"
-AddValues "INFO" "Key file set to $PassKey"
+$PassPath = $RootPath + "\apps\" + $RealApp
 
 # Init app file
 if ( ! (Test-Path $InitApp) ) { 

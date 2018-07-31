@@ -302,8 +302,14 @@ Function GetCryptedPass
 
     param (
         [Parameter(Mandatory=$false)][string]$Password,
+        [Parameter(Mandatory=$false)][string]$PassFileSuffix="",
         [switch]$UseKey
     )
+
+    $PassApp = $PassPath+$PassFileSuffix+".pass"
+    $PassKey = $PassPath+$PassFileSuffix+".key"
+    AddValues "INFO" "Password file set to $PassApp"
+    AddValues "INFO" "Key file set to $PassKey"
 
     # If Password defined create the password file
     if($Password) {
