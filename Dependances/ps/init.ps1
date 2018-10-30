@@ -399,6 +399,13 @@ function Minimize-All-Windows
 }
 
 #********************************************************************SELENIUM*****************************************************************
+Function TestPsVersion {
+    if ( $PSVersionTable.PSVersion.Major -lt "4" ) {
+        AddValues "ERROR" "You must install PowerShell Version 4"
+        AddValues "ERROR" "See https://www.microsoft.com/fr-FR/download/details.aspx?id=40855"
+        exit 2
+    }
+}
 
 # Load Selenium
 $PathSelenium="$Path..\selenium"

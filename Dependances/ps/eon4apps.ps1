@@ -1,4 +1,4 @@
-﻿#*********************************************************************************************************************************************#
+#*********************************************************************************************************************************************#
 #*                                                                                                                                           *#
 #* Powershell                                                                                                                                *#
 #* Author:LEVY Jean-Philippe                                                                                                                 *#
@@ -28,6 +28,8 @@ $ScriptPath = (Split-Path ((Get-Variable MyInvocation).Value).MyCommand.Path)
 $Init = $ScriptPath + "\init.ps1"
 If (!(Test-Path $Init)){ throw [System.IO.FileNotFoundException] "$Init not found" }
 . $Init
+
+TestPsVersion
 
 # Create folder
 $RealApp = $App -replace "user_", ""
