@@ -399,6 +399,8 @@ function Minimize-All-Windows
 }
 
 #********************************************************************SELENIUM*****************************************************************
+
+# Selenium drivers need at least poweshell version 4.
 Function TestPsVersion {
     if ( $PSVersionTable.PSVersion.Major -lt "4" ) {
         AddValues "ERROR" "You must install PowerShell Version 4"
@@ -407,23 +409,24 @@ Function TestPsVersion {
     }
 }
 
+# Take screenshot in web-mode using GetScreenshot thanks to Selenium
+# Then scp it to the server
 Function ImageWebScreenshot {
+    param (
+        [string] $location
+    )
+    $aDate = Get-Date
+    $sDate = $aDate.ToString("yyyyMMddHHmmss")
+    $FileName = 'screenshot_' + $sDate + '.png'
+    $ScrShot = $ScriptPath + '\..\log\' + $FileName
+    $screenshot = $WebDriver.GetScreenshot() # [OpenQA.Selenium.OutputType]::FILE
+    $screenshot.SaveAsFile($ScrShot,[OpenQA.Selenium.ScreenshotImageFormat]::Png)
 
-	param (
-		[string] $location
-	)
-	$aDate = Get-Date
-	$sDate = $aDate.ToString("yyyyMMddHHmmss")
-	$FileName = 'screenshot_' + $sDate + '.png'
-	$ScrShot = $ScriptPath + '\..\log\' + $FileName
-	$screenshot = $WebDriver.GetScreenshot() # [OpenQA.Selenium.OutputType]::FILE
-	$screenshot.SaveAsFile($ScrShot,[OpenQA.Selenium.ScreenshotImageFormat]::Png)
-	
-	$PathKey = $Path -replace "\\ps\\", "\sshkey"
-	AddValues "ERROR" "Send the file: ${Path}\..\bin\pscp.exe -i ${Path}..\sshkey\id_dsa -l eon4apps $ScrShot ${EonServ}:/srv/eyesofnetwork/eon4apps/html/"
-	$SendFile = & ${Path}\..\bin\pscp.exe -i ${PathKey}\id_dsa -l eon4apps $ScrShot "${EonServ}:/srv/eyesofnetwork/eon4apps/html/"
-	$ConcatUrlSend = $location + ' not found in screen: <a href="/eon4apps/' + $FileName + '" target="_blank">' + $FileName + '</a>'
-	return $ConcatUrlSend
+    $PathKey = $Path -replace "\\ps\\", "\sshkey"
+    AddValues "ERROR" "Send the file: ${Path}\..\bin\pscp.exe -i ${Path}..\sshkey\id_dsa -l eon4apps $ScrShot ${EonServ}:/srv/eyesofnetwork/eon4apps/html/"
+    $SendFile = & ${Path}\..\bin\pscp.exe -i ${PathKey}\id_dsa -l eon4apps $ScrShot "${EonServ}:/srv/eyesofnetwork/eon4apps/html/"
+    $ConcatUrlSend = $location + ' not found in screen: <a href="/eon4apps/' + $FileName + '" target="_blank">' + $FileName + '</a>'
+    return $ConcatUrlSend
 }
 
 # Load Selenium
@@ -542,8 +545,8 @@ function waitForElement($locator, $timeInSeconds,[switch]$byClass,[switch]$byNam
         if($Negate) {
             AddValues "INFO" "$locator not found"    
         } else {
-			$msg = ImageWebScreenshot $locator
-			throw "Wait for $locator timed out.<br/>" + $msg
+            $msg = ImageWebScreenshot $locator
+            throw "Wait for $locator timed out.<br/>" + $msg
         }
     }
 }
