@@ -29,8 +29,6 @@ $Init = $ScriptPath + "\init.ps1"
 If (!(Test-Path $Init)){ throw [System.IO.FileNotFoundException] "$Init not found" }
 . $Init
 
-TestPsVersion
-
 # Create folder
 $RealApp = $App -replace "user_", ""
 $RootPath = $PathApps -replace "\\ps\\", "" -replace "Apps\\", ""
@@ -160,6 +158,8 @@ $cmd = Measure-Command {
     else {
         AddValues "INFO" "Running in web mode..."
         $WebMode=1;
+        # Check Powershell version for Selenium
+        TestPsVersion
         Start-WebDriver $Navigator
         $WebDriver.Manage().Timeouts().ImplicitWait=New-TimeSpan -Seconds 5
         $WebDriver.Navigate().GoToUrl($Url)
