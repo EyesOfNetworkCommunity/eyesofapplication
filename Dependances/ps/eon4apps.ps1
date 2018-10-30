@@ -1,4 +1,4 @@
-﻿#*********************************************************************************************************************************************#
+#*********************************************************************************************************************************************#
 #*                                                                                                                                           *#
 #* Powershell                                                                                                                                *#
 #* Author:LEVY Jean-Philippe                                                                                                                 *#
@@ -158,6 +158,8 @@ $cmd = Measure-Command {
     else {
         AddValues "INFO" "Running in web mode..."
         $WebMode=1;
+        # Check Powershell version for Selenium
+        TestPsVersion
         Start-WebDriver $Navigator
         $WebDriver.Manage().Timeouts().ImplicitWait=New-TimeSpan -Seconds 5
         $WebDriver.Navigate().GoToUrl($Url)
