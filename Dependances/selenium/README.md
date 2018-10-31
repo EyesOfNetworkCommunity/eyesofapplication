@@ -1,9 +1,20 @@
-<h2>Documentation – Add Selenium</h2>
+# Selenium Drivers Installation
 
-<p>
-PowerShell 4.0 uses .Net 4.5 so the first thing to do is download the Selenium C# language package 
-(if you find “.nupkg” files inside the zip then append “.zip” to the end of each “.nupkg” file, 
-you want to open the Selenium.WebDriver.3.6.0.nupkg file to extract the WebDriver.dll file) from Selenium’s download page and extract the net45/ directory. Do the same with Selenium.Support.3.13.0.nupkg file and extract WebDriver.Support.dll.
-We’ll use the WebDriver.dll and the WebDriver.Support.dll files in our PowerShell scripts.
-We require the IE, Firefox or Chrome driver from the Selenium downloads page.
-</p>
+## PowerShell - DotNet
+
+Selenium need PowerShell 4.0 at least. If you run EOA on Windows7, please update PowerShell following this link: https://www.microsoft.com/fr-FR/download/details.aspx?id=40855.
+
+You also need the Microsoft .NET Framework 4.5, available here: https://www.microsoft.com/fr-fr/download/details.aspx?id=30653
+
+## C# Packages
+
+EOA uses Selenium C# package, so you have to download and install it:
+- Download Selenium Client & WebDriver Language Bindings, C# version: https://www.seleniumhq.org/download/
+- Extract file (rename `.nupkg` to `.zip`)
+- Copy `WebDriver.dll` and  `WebDriver.Support.dll` to the selenium folder
+
+## Browser Packages
+
+Selenium needs web browsers to work:
+- Download IE, Firefox or Chrome driver from the Selenium download page: https://www.seleniumhq.org/download/
+- Extract and copy drivers to the selenium folder
