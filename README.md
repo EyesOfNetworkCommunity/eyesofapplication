@@ -153,4 +153,4 @@ Si l’image est trouvée, vous obtenez alors ce résultat :
 
 EOA permet de gérer des scénarios basé sur des copies d'écrans, mais également avec Selenium pour les services web.
 
-Voir la documentation [Readme.md](selenium/Readme.md) pour l'installation des drivers.
+Voir la documentation [Readme.md](Dependances/selenium/README.md) pour l'installation des drivers.
