@@ -55,12 +55,16 @@ Dans l’exemple, le poste a la version 32 bits de Firefox d’installé.
 Le programme utilise une connexion SSH via une paire de clés.<br/>
 Il vous faut créer cette paire de clés, pour ce faire rendez-vous sur votre serveur EON.
 
-* En tant qu'utilisateur `eon4apps` exécuter la commande `ssh-keygen –t dsa`.
+* En tant qu'utilisateur `eon4apps` exécutez la commande `ssh-keygen –t dsa`.
 * Dirigez-vous ensuite dans le dossier `/srv/eyesofnetwork/eon4apps/.ssh` afin de retrouver la paire de clé précédement générée. 
 
 ![Screenshot](Dependances/docs/DocImg/cscr8.png)
 
-* Une fois ceci fait, retournez sur votre poste Windows. Ouvrez PowerShell en administrateur et lancez cette commande pour récupérer la clé et l’envoyer dans le bon dossier.
+* Envoyez la clé publique générée dans le fichier *authorized_keys* avec la commande `cat id_rsa.pub >> authorized_keys`
+
+![Screenshot](Dependances/docs/DocImg/cscr26.png)
+
+* Une fois ceci fait, retournez sur votre poste Windows. Ouvrez PowerShell en administrateur et lancez cette commande pour récupérer la clé et l’envoyer dans le bon dossier. Le login du compte root de la machine EON est nécessaire.
 
 ![Screenshot](Dependances/docs/DocImg/cscr9.png)
 
@@ -68,9 +72,15 @@ Il vous faut créer cette paire de clés, pour ce faire rendez-vous sur votre se
 
 ![Screenshot](Dependances/docs/DocImg/cscr10.png)
 
-* Puis sauvegardez-la :
+* Puis sauvegardez-la dans *C:\Axians\EOA\sshkey* :
 
 ![Screenshot](Dependances/docs/DocImg/cscr11.png)
+
+* Allez dans *C:\Axians\EOA\sshkey*. Renommez la clé nouvellement généré en *id_dsa* sans l'extension **.ppk**
+
+![Screenshot](Dependances/docs/DocImg/cscr25.png)
+
+* Supprimez la clé envoyé initialement du serveur EON pour ne garder que la nouvelle clé dans *C:\Axians\EOA\sshkey*
 
 ## Configuration d’Eyes Of Network
 
@@ -86,8 +96,11 @@ Maintenant, il faut configurer EON pour qu’il récupère les informations vena
   * sur l'onglet "General", renommer le service et sa description :
     ![Screenshot](Dependances/docs/DocImg/passv3.png)
 
-  * Désactiver l'option "Active Checks" ![Screenshot](Dependances/docs/DocImg/passv4.png)
-  * Passer l'option "Freshness threshold" à 1200 ![Screenshot](Dependances/docs/DocImg/passv4.png)
+  * Désactiver l'option "Active Checks" 
+  ![Screenshot](Dependances/docs/DocImg/passv4.png)
+
+  * Activez le "Check Freshness" et passer l'option "Freshness threshold" à 1200 
+  ![Screenshot](Dependances/docs/DocImg/passv5.png)
 
 * Rajoutez l’hôte :
 
