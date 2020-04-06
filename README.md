@@ -60,7 +60,7 @@ Il vous faut créer cette paire de clés, pour ce faire rendez-vous sur votre se
 
 ![Screenshot](Dependances/docs/DocImg/cscr8.png)
 
-* Envoyez la clé publique générée dans le fichier *authorized_keys* avec la commande `cat id_rsa.pub >> authorized_keys`
+* Envoyez la clé publique générée dans le fichier *authorized_keys* avec la commande `cat id_dsa.pub >> authorized_keys`
 
 ![Screenshot](Dependances/docs/DocImg/cscr26.png)
 
