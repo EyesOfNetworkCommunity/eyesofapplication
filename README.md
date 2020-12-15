@@ -162,6 +162,16 @@ Si l’image est trouvée, vous obtenez alors ce résultat :
 
 ![Screenshot](Dependances/docs/DocImg/cscr24.png)
 
+Si la sonde est en erreur, un screenshot sera envoyé à EON via ssh, avec le lien de l'image à cliquer en commentaires du service. Pour rendre le lien cliquable, il faut éditer la configuration thruk sur le serveur EON:
+
+```console
+# vim /etc/thruk/cgi.cfg
+[...]
+escape_html_tags=0
+[...]
+# systemctl restart httpd
+```
+
 ## Selenium
 
 EOA permet de gérer des scénarios basé sur des copies d'écrans, mais également avec Selenium pour les services web.
